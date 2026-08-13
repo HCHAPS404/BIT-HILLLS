@@ -129,11 +129,12 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
 
       // Trama cartográfica: la DENSIDAD del rayado es la severidad.
       // Se lee en gris, se lee impresa y funciona con daltonismo.
+      // Alfa 0.1: las marcas se leen sin tapar el plano.
       m.addLayer({
         id: 'zonas-relleno', type: 'fill', source: 'zonas',
         paint: {
           'fill-pattern': EXPR_TRAMA,
-          'fill-opacity': ['case', ['boolean', ['feature-state', 'sel'], false], 1, 0.82],
+          'fill-opacity': 0.1,
         },
       });
 

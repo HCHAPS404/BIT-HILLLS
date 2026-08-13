@@ -10,8 +10,8 @@ export const ModoPresentacion: React.FC<ModoPresentacionProps> = ({ onClose, onP
   const [mostrarNotas, setMostrarNotas] = useState(true);
   const [simMarea, setSimMarea] = useState<'bajamar' | 'pleamar'>('bajamar');
 
-  // Cronómetro de 3 minutos
-  const [segundos, setSegundos] = useState(180);
+  // Cronómetro de 4 minutos (guion en PITCH-GUION.md)
+  const [segundos, setSegundos] = useState(240);
   const [corriendo, setCorriendo] = useState(false);
 
   useEffect(() => {
@@ -45,10 +45,9 @@ export const ModoPresentacion: React.FC<ModoPresentacionProps> = ({ onClose, onP
   const seg = (segundos % 60).toString().padStart(2, '0');
 
   const slides = [
-    // Slide 1: Portada
     {
       titulo: 'MAREA',
-      subtitulo: 'Sistema de Alerta Temprana de Inundación con Valor Económico Expuesto',
+      subtitulo: 'Alerta temprana de inundación · 24 a 72 horas · sin un solo sensor instalado',
       tipo: 'portada',
       contenido: (
         <div style={{ textAlign: 'center', marginTop: 'var(--esp-6)' }}>
@@ -56,134 +55,108 @@ export const ModoPresentacion: React.FC<ModoPresentacionProps> = ({ onClose, onP
             MAREA
           </div>
           <div style={{ fontSize: 'var(--texto-lg)', color: 'var(--papel-tenue)', marginTop: 'var(--esp-3)' }}>
-            Corredor Turístico de Cartagena · Bocagrande / Centro / Manga
+            Corredor Bocagrande – Centro – Manga · Cartagena
           </div>
           <div style={{ display: 'inline-flex', gap: 'var(--esp-3)', marginTop: 'var(--esp-6)', flexWrap: 'wrap', justifyContent: 'center' }}>
             <span className="badge badge-vivo">CTW Hackathon 2026</span>
-            <span className="badge badge-sin-calibrar">Misión: Cartagena Construye con IA</span>
+            <span className="badge badge-sin-calibrar">sin calibrar</span>
             <span className="badge badge-simulado">UNITECNAR</span>
           </div>
         </div>
       ),
-      nota: 'HOOOK (0:00-0:30): Saluda seguro. Plantea la tesis principal: "El problema no es limpiar por limpiar, es saber cuál canal limpiar primero y con cuánto tiempo de anticipación".',
+      nota: 'PORTADA (10s): «Predecimos qué zonas se van a inundar, 24 a 72 horas, sin un solo sensor instalado.» Silencio 2–3 s después de esa frase.',
     },
-
-    // Slide 2: El Problema
     {
-      titulo: '🚨 El Problema Real',
-      subtitulo: 'Datos duros de Cartagena (OAGRD & Cartagena Cómo Vamos)',
+      titulo: 'El problema',
+      subtitulo: 'OAGRD y Cartagena Cómo Vamos · 2024',
       tipo: 'tarjetas',
       contenido: (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--esp-5)', marginTop: 'var(--esp-5)' }}>
           <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
-            <div className="rotulo" style={{ color: 'var(--acento)', marginBottom: 'var(--esp-3)' }}>Cifras de Ciudad 2024</div>
+            <div className="rotulo" style={{ color: 'var(--acento)', marginBottom: 'var(--esp-3)' }}>Cifras 2024</div>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: 'var(--texto-md)', lineHeight: 1.8 }}>
-              <li>🔴 <strong>304 emergencias</strong> reportadas por OAGRD.</li>
-              <li>🌊 <strong>49 por lluvias e inundaciones</strong> (16% del total).</li>
-              <li>🧹 <strong>50 canales limpiados</strong> en la ciudad.</li>
-              <li>🚯 <strong>43% de insatisfacción</strong> por basuras en calles.</li>
+              <li><strong>304</strong> emergencias en la ciudad</li>
+              <li><strong>49</strong> por lluvia e inundación</li>
+              <li><strong>50</strong> canales limpiados</li>
+              <li><strong>43 %</strong> insatisfechos con las basuras</li>
             </ul>
           </div>
-
-          <div className="panel milimetrado" style={{ padding: 'var(--esp-5)', borderLeft: '3px solid var(--alerta)' }}>
-            <div className="rotulo" style={{ color: 'var(--alerta)', marginBottom: 'var(--esp-3)' }}>El Cuello de Botella Operativo</div>
-            <p style={{ fontSize: 'var(--texto-md)', lineHeight: 1.6, color: 'var(--papel)' }}>
-              "En 2024 se limpiaron 50 canales. Las cuadrillas trabajan, pero las decisiones hoy son reactivas."
-            </p>
-            <p style={{ fontSize: 'var(--texto-md)', fontWeight: 700, color: 'var(--acento)', marginTop: 'var(--esp-4)' }}>
-              La pregunta clave: ¿Cuál canal intervenir PRIMERO y con cuánto tiempo de anticipación?
+          <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
+            <div className="rotulo" style={{ color: 'var(--alerta)', marginBottom: 'var(--esp-3)' }}>El cuello de botella</div>
+            <p className="prosa" style={{ margin: 0 }}>
+              El problema nunca fue limpiar. Fue saber cuál primero, y con cuánto tiempo. Hoy esa decisión se toma a ojo, después de que ya llovió.
             </p>
           </div>
         </div>
       ),
-      nota: 'EXPLICACIÓN (0:30-1:15): Haz énfasis en que limpiar a ciegas genera emergencias evitables. MAREA pasa de la reacción a la anticipación.',
+      nota: 'PROBLEMA (30s): 304, 49, 50, 43 %. Si preguntan quién lo pidió: el 43 % de insatisfacción con basuras (EPC 2024) — esa basura tapa los canales.',
     },
-
-    // Slide 3: La Tesis Física
     {
-      titulo: '🌊 Tesis Física: El Efecto Lavamanos',
-      subtitulo: 'Sin un solo sensor físico instalado en los canales',
+      titulo: 'La física, sin sensores',
+      subtitulo: 'El agua drena por gravedad. El mar tapa la salida.',
       tipo: 'formula',
       contenido: (
         <div style={{ marginTop: 'var(--esp-5)' }}>
-          <div className="panel milimetrado" style={{ padding: 'var(--esp-5)', textAlign: 'center', background: 'var(--abismo)' }}>
-            <div className="rotulo" style={{ color: 'var(--acento)', fontSize: 'var(--texto-xs)' }}>ÍNDICE DE RIESGO DE INUNDACIÓN (IRI)</div>
-            <div className="num" style={{ fontSize: 'var(--texto-xl)', fontWeight: 800, color: 'var(--papel)', marginBlock: 'var(--esp-3)' }}>
+          <div className="panel milimetrado" style={{ padding: 'var(--esp-5)', textAlign: 'center', backgroundColor: 'var(--abismo)' }}>
+            <div className="rotulo" style={{ color: 'var(--acento)' }}>IRI</div>
+            <div className="num" style={{ fontSize: 'var(--texto-xl)', fontWeight: 800, marginBlock: 'var(--esp-3)' }}>
               IRI = 100 · S · R<sup>0.7</sup> · (0.55 + 0.20·D + 0.25·O)
             </div>
-            <div className="rotulo" style={{ textTransform: 'none', color: 'var(--papel-tenue)' }}>
-              *Si R (lluvia) es 0, IRI = 0. Tesis física verificada.
-            </div>
+            <div className="prosa-nota">Sin lluvia, el índice es cero. Es multiplicativo.</div>
           </div>
-
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--esp-3)', marginTop: 'var(--esp-5)' }}>
             <div className="panel" style={{ padding: 'var(--esp-3)', textAlign: 'center' }}>
-              <div className="rotulo" style={{ color: 'var(--acento)' }}>R · Lluvia</div>
-              <div style={{ fontSize: 'var(--texto-xs)', marginTop: 'var(--esp-2)', color: 'var(--papel-tenue)' }}>Pronóstico h+72 via Open-Meteo</div>
+              <div className="rotulo" style={{ color: 'var(--alerta)' }}>R · lluvia</div>
+              <div className="prosa-nota" style={{ marginTop: 'var(--esp-2)' }}>Open-Meteo. El disparador.</div>
             </div>
             <div className="panel" style={{ padding: 'var(--esp-3)', textAlign: 'center' }}>
-              <div className="rotulo" style={{ color: 'var(--alerta)' }}>D · Marea</div>
-              <div style={{ fontSize: 'var(--texto-xs)', marginTop: 'var(--esp-2)', color: 'var(--papel-tenue)' }}>Nivel mar + oleaje Open-Meteo Marine</div>
+              <div className="rotulo" style={{ color: 'var(--marea)' }}>D · mar</div>
+              <div className="prosa-nota" style={{ marginTop: 'var(--esp-2)' }}>Marea + oleaje. Tapa el drenaje.</div>
             </div>
             <div className="panel" style={{ padding: 'var(--esp-3)', textAlign: 'center' }}>
-              <div className="rotulo" style={{ color: 'var(--vigila)' }}>O · Obstrucción</div>
-              <div style={{ fontSize: 'var(--texto-xs)', marginTop: 'var(--esp-2)', color: 'var(--papel-tenue)' }}>Reportes por basura en canal</div>
+              <div className="rotulo" style={{ color: 'var(--vigila)' }}>O · canal</div>
+              <div className="prosa-nota" style={{ marginTop: 'var(--esp-2)' }}>Basura. La reportan los vecinos.</div>
             </div>
             <div className="panel" style={{ padding: 'var(--esp-3)', textAlign: 'center' }}>
-              <div className="rotulo" style={{ color: 'var(--seco)' }}>S · Susceptibilidad</div>
-              <div style={{ fontSize: 'var(--texto-xs)', marginTop: 'var(--esp-2)', color: 'var(--papel-tenue)' }}>Cota topográfica e historial</div>
+              <div className="rotulo" style={{ color: 'var(--seco)' }}>S · zona</div>
+              <div className="prosa-nota" style={{ marginTop: 'var(--esp-2)' }}>Cota e historial del barrio.</div>
             </div>
           </div>
         </div>
       ),
-      nota: 'ANALOGÍA (1:15-1:45): Usa la analogía del lavamanos: la lluvia es la llave abierta y el mar es el tapón del desagüe.',
+      nota: 'FÍSICA (45s): Recorre R, D, O, S de izquierda a derecha. Cierra: Open-Meteo y OSM. Cero hardware.',
     },
-
-    // Slide 4: El Motor Económico
     {
-      titulo: '💰 Motor Económico: Valor Expuesto en Riesgo (VER)',
-      subtitulo: 'Cuantificando la pérdida monetaria esperada por hora',
+      titulo: 'El motor económico',
+      subtitulo: 'Un índice no mueve a nadie. Lo que mueve es la plata.',
       tipo: 'economico',
       contenido: (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--esp-5)', marginTop: 'var(--esp-5)' }}>
           <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
-            <div className="rotulo" style={{ color: 'var(--acento)', marginBottom: 'var(--esp-3)' }}>1.533 Comercios Mapeados</div>
-            <p style={{ fontSize: 'var(--texto-sm)', color: 'var(--papel)', lineHeight: 1.6 }}>
-              Conteo real georreferenciado extraído vía <strong>OpenStreetMap (Overpass API)</strong> en las 6 zonas críticas.
+            <div className="rotulo" style={{ color: 'var(--acento)', marginBottom: 'var(--esp-3)' }}>1.533 comercios reales</div>
+            <p className="prosa" style={{ margin: 0 }}>
+              Conteo en las seis zonas por OpenStreetMap. No es una estimación: es un piso.
             </p>
-            <div style={{ display: 'flex', gap: 'var(--esp-3)', marginTop: 'var(--esp-4)' }}>
-              <div className="badge badge-simulado">🏨 Hoteles (15% neto)</div>
-              <div className="badge badge-simulado">🍽️ Restaurantes (85% neto)</div>
-            </div>
           </div>
-
           <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
-            <div className="rotulo" style={{ color: 'var(--alerta)', marginBottom: 'var(--esp-3)' }}>Pérdidas Reales No Recuperables (η)</div>
-            <p style={{ fontSize: 'var(--texto-sm)', color: 'var(--papel)', lineHeight: 1.6 }}>
-              Diferenciamos el ingreso diferido de la <strong>pérdida directa no recuperable</strong>. Un almuerzo o una noche no vendida hoy no se recuperan mañana.
+            <div className="rotulo" style={{ color: 'var(--alerta)', marginBottom: 'var(--esp-3)' }}>Lo que no se recupera</div>
+            <p className="prosa" style={{ margin: 0 }}>
+              Un hotel pierde el desayuno, no la noche ya pagada. Un restaurante pierde el almuerzo completo. Esa diferencia está en el modelo.
             </p>
-            <div className="rotulo" style={{ marginTop: 'var(--esp-4)', color: 'var(--acento)', textTransform: 'none' }}>
-              Piso conservador de pérdida monetaria real.
-            </div>
           </div>
         </div>
       ),
-      nota: 'VALOR COMERCIAL (1:45-2:15): Muestra al jurado que entiendes el negocio real de Cartagena (turismo, hoteles, restaurantes).',
+      nota: 'PLATA (30s): 1.533 comercios. Hotel ≠ restaurante. VER es un piso, no una pérdida ya ocurrida.',
     },
-
-    // Slide 5: Simulador Interactivo "Efecto Pleamar"
     {
-      titulo: '⚡ Demo Interactiva: El "Efecto Pleamar"',
-      subtitulo: 'Prueba cambiar la marea manteniendo exactamente la misma lluvia',
+      titulo: 'El efecto pleamar',
+      subtitulo: 'Mismo aguacero, mismo canal. Solo cambia la marea.',
       tipo: 'simulador',
       contenido: (
         <div className="panel milimetrado" style={{ padding: 'var(--esp-6)', marginTop: 'var(--esp-4)', textAlign: 'center' }}>
-          <div className="rotulo" style={{ color: 'var(--acento)', marginBottom: 'var(--esp-3)' }}>
-            SELECCIONA EL ESTADO DE LA MAREA:
-          </div>
-
           <div style={{ display: 'inline-flex', gap: 'var(--esp-3)', marginBottom: 'var(--esp-6)' }}>
             <button
+              type="button"
               onClick={() => {
                 setSimMarea('bajamar');
                 onProbarEscenario?.('aguacero_marea_baja');
@@ -191,14 +164,15 @@ export const ModoPresentacion: React.FC<ModoPresentacionProps> = ({ onClose, onP
               style={{
                 fontSize: 'var(--texto-md)',
                 padding: 'var(--esp-3) var(--esp-6)',
-                background: simMarea === 'bajamar' ? 'var(--abismo)' : 'transparent',
-                borderColor: simMarea === 'bajamar' ? 'var(--alerta)' : 'var(--sonda)',
+                backgroundColor: simMarea === 'bajamar' ? 'var(--abismo)' : 'transparent',
                 color: simMarea === 'bajamar' ? 'var(--alerta)' : 'var(--papel-tenue)',
                 fontWeight: 700,
-              }}>
-              🌊 BAJAMAR
+              }}
+            >
+              BAJAMAR
             </button>
             <button
+              type="button"
               onClick={() => {
                 setSimMarea('pleamar');
                 onProbarEscenario?.('aguacero_marea_alta');
@@ -206,73 +180,80 @@ export const ModoPresentacion: React.FC<ModoPresentacionProps> = ({ onClose, onP
               style={{
                 fontSize: 'var(--texto-md)',
                 padding: 'var(--esp-3) var(--esp-6)',
-                background: simMarea === 'pleamar' ? 'var(--critico)' : 'transparent',
-                borderColor: 'var(--critico)',
+                backgroundColor: simMarea === 'pleamar' ? 'var(--critico)' : 'transparent',
                 color: simMarea === 'pleamar' ? 'var(--papel)' : 'var(--critico)',
                 fontWeight: 800,
-              }}>
-              🔴 PLEAMAR
+              }}
+            >
+              PLEAMAR
             </button>
           </div>
-
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--esp-5)', textAlign: 'left' }}>
-            <div className="panel" style={{ padding: 'var(--esp-4)', borderColor: simMarea === 'pleamar' ? 'var(--critico)' : 'var(--alerta)' }}>
-              <div className="rotulo" style={{ color: simMarea === 'pleamar' ? 'var(--critico)' : 'var(--alerta)' }}>
-                NIVEL DE RIESGO (IRI)
-              </div>
+            <div className="panel" style={{ padding: 'var(--esp-4)' }}>
+              <div className="rotulo" style={{ color: simMarea === 'pleamar' ? 'var(--critico)' : 'var(--alerta)' }}>IRI</div>
               <div className="num" style={{ fontSize: '2.5rem', fontWeight: 800, color: simMarea === 'pleamar' ? 'var(--critico)' : 'var(--alerta)' }}>
                 {simMarea === 'bajamar' ? '65.6' : '83.7'}
                 <span style={{ fontSize: 'var(--texto-sm)', fontWeight: 400 }}> / 100</span>
               </div>
-              <div className="rotulo" style={{ color: simMarea === 'pleamar' ? 'var(--critico)' : 'var(--alerta)', textTransform: 'none' }}>
-                BANDA: {simMarea === 'bajamar' ? 'NARANJA (ALERTA)' : 'ROJO (CRÍTICO)'}
-              </div>
+              <div className="prosa-nota">{simMarea === 'bajamar' ? 'alerta' : 'crítico'}</div>
             </div>
-
-            <div className="panel" style={{ padding: 'var(--esp-4)', borderColor: simMarea === 'pleamar' ? 'var(--critico)' : 'var(--alerta)' }}>
-              <div className="rotulo" style={{ color: 'var(--acento)' }}>VALOR EXPUESTO EN RIESGO (VER)</div>
-              <div className="num" style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--papel)' }}>
+            <div className="panel" style={{ padding: 'var(--esp-4)' }}>
+              <div className="rotulo" style={{ color: 'var(--acento)' }}>plata en riesgo</div>
+              <div className="num" style={{ fontSize: '2rem', fontWeight: 800 }}>
                 {simMarea === 'bajamar' ? '$188.829.108' : '$337.301.751'}
-                <span style={{ fontSize: 'var(--texto-xs)', color: 'var(--papel-tenue)' }}> COP/h</span>
               </div>
-              <div className="rotulo" style={{ color: 'var(--alerta)', textTransform: 'none' }}>
-                {simMarea === 'bajamar' ? 'Pérdida moderada por hora' : '🔥 +$148 MILLONES COP / hora MÁS'}
+              <div className="prosa-nota" style={{ color: 'var(--alerta)' }}>
+                {simMarea === 'bajamar' ? 'mismo aguacero, mar bajo' : '+$148 millones solo por la marea'}
               </div>
             </div>
           </div>
         </div>
       ),
-      nota: 'MOMENTO CLAVE (2:15-2:45): Haz clic en "PLEAMAR" y di fuertemente: "+$148 Millones de pesos por hora con la misma lluvia, solo porque cambió la marea".',
+      nota: 'DEMO (45s): Deja respirar los dos números. «148 millones de diferencia, causados exclusivamente por la marea.» Si hay wifi: cambia a marea-drq.pages.dev y mueve el slider.',
     },
-
-    // Slide 6: Arquitectura y Fontumi
     {
-      titulo: '🛠️ Arquitectura & Canal Fontumi',
-      subtitulo: 'Serverless, resiliencia senior e integración conversacional',
+      titulo: 'Arquitectura y honestidad',
+      subtitulo: 'El core no sabe que Open-Meteo existe. Fontumi se dice en voz alta.',
       tipo: 'tech',
       contenido: (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--esp-5)', marginTop: 'var(--esp-5)' }}>
           <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
-            <div className="rotulo" style={{ color: 'var(--acento)', marginBottom: 'var(--esp-3)' }}>Stack Serverless (Willo Standard)</div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: 'var(--texto-sm)', lineHeight: 1.8 }}>
-              <li>⚡ <strong>Cloudflare Workers + Hono:</strong> API ultrarrápida.</li>
-              <li>🗺️ <strong>Vite + React + MapLibre:</strong> HUD náutico.</li>
-              <li>🛡️ <strong>Core Desacoplado:</strong> Puras señales `Signal`.</li>
-              <li>🔄 <strong>Fallback Resiliente:</strong> `degradado: true`.</li>
-            </ul>
+            <div className="rotulo" style={{ color: 'var(--acento)', marginBottom: 'var(--esp-3)' }}>Ingeniería</div>
+            <p className="prosa" style={{ margin: 0 }}>
+              Cloudflare Workers + Hono. React + MapLibre. Si cambia la fuente o la ciudad: 40 líneas de adaptador, cero cambios al core. Si una fuente se cae, no hay pantalla en blanco: cae a escenario y lo declara.
+            </p>
           </div>
-
           <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
-            <div className="rotulo" style={{ color: 'var(--alerta)', marginBottom: 'var(--esp-3)' }}>Integración Fontumi (WhatsApp + Voz)</div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: 'var(--texto-sm)', lineHeight: 1.8 }}>
-              <li>📸 <strong>Reporte Ciudadano:</strong> Foto de canal tapado por WhatsApp.</li>
-              <li>📞 <strong>iAgents Voz:</strong> Llamada automática a comercios en banda roja.</li>
-              <li>🔔 <strong>Alertas Segmentadas:</strong> Por geolocalización.</li>
-            </ul>
+            <div className="rotulo" style={{ color: 'var(--alerta)', marginBottom: 'var(--esp-3)' }}>Fontumi</div>
+            <p className="prosa" style={{ margin: 0 }}>
+              WhatsApp y voz ya están construidos y probados en consola. La cuenta real está en pausa por credenciales, no por diseño. Cuando lleguen: una variable de entorno, no una reescritura.
+            </p>
           </div>
         </div>
       ),
-      nota: 'ARQUITECTURA (2:45-3:00): Menciona la resiliencia y cómo Fontumi cierra el ciclo conversacional con los ciudadanos y comerciantes.',
+      nota: 'ARQUITECTURA (40s): Adaptador / degradado. Fontumi: honesto, sin rodeos. Misma lógica que el sello SIN CALIBRAR.',
+    },
+    {
+      titulo: 'Tres números',
+      subtitulo: 'Cuál primero, y con cuánto tiempo.',
+      tipo: 'cierre',
+      contenido: (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--esp-5)', marginTop: 'var(--esp-6)', textAlign: 'center' }}>
+          <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
+            <div className="num" style={{ fontSize: 'var(--texto-2xl)', fontWeight: 800, color: 'var(--alerta)' }}>49</div>
+            <div className="prosa-nota">emergencias por agua en 2024</div>
+          </div>
+          <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
+            <div className="num" style={{ fontSize: 'var(--texto-2xl)', fontWeight: 800, color: 'var(--vigila)' }}>43 %</div>
+            <div className="prosa-nota">insatisfechos con las basuras que tapan los canales</div>
+          </div>
+          <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
+            <div className="num" style={{ fontSize: 'var(--texto-2xl)', fontWeight: 800, color: 'var(--acento)' }}>1.533</div>
+            <div className="prosa-nota">comercios en el mapa, en tiempo real</div>
+          </div>
+        </div>
+      ),
+      nota: 'CIERRE (20s): Los tres números. «MAREA no reemplaza la limpieza. Le dice a la ciudad cuál primero, y con cuánto tiempo.» Gracias. Cierra en silencio.',
     },
   ];
 
@@ -305,7 +286,7 @@ export const ModoPresentacion: React.FC<ModoPresentacionProps> = ({ onClose, onP
           <span className="rotulo">SLIDE {slide + 1} / {slides.length}</span>
         </div>
 
-        {/* Cronómetro de 3 minutos */}
+        {/* Cronómetro de 4 minutos */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--esp-3)' }}>
           <div
             className="num"
@@ -322,7 +303,7 @@ export const ModoPresentacion: React.FC<ModoPresentacionProps> = ({ onClose, onP
             {corriendo ? 'PAUSAR' : 'INICIAR TIMING'}
           </button>
           <button
-            onClick={() => { setSegundos(180); setCorriendo(false); }}
+            onClick={() => { setSegundos(240); setCorriendo(false); }}
             style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)' }}>
             RESET
           </button>

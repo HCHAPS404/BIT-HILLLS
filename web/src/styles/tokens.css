@@ -331,7 +331,7 @@ input[type="range"] { accent-color: var(--acento); background: transparent; bord
   display: flex; flex-direction: column; gap: var(--esp-6);
   overflow-y: auto; overscroll-behavior: contain;
 }
-.hud-izq { left: var(--gutter); width: 320px; bottom: 52px; }
+.hud-izq { left: var(--gutter); width: 320px; bottom: 52px; overflow: visible; }
 .hud-der { right: var(--gutter); width: 380px; }
 
 .aviso-escenario {

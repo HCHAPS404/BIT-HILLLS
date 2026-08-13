@@ -18,12 +18,21 @@ import { EstadoInicial } from './components/EstadoInicial';
 import { SeccionColapsable } from './components/SeccionColapsable';
 import { Definicion } from './components/Definicion';
 import { ModoPresentacion } from './components/ModoPresentacion';
+import { Pildoras } from './components/Pildoras';
 import {
   getZonas, getRiesgo, getEscenarios, simular,
   COLOR_BANDA, copCorto, type GeoResp, type DetalleZona,
 } from './lib/api';
 import { DEFINICIONES } from './lib/lectura';
 import { T, type Idioma } from './i18n';
+
+const CORTO_ESCENARIO: Record<string, string> = {
+  aguacero_marea_alta: 'PLEA',
+  aguacero_marea_baja: 'BAJA',
+  mar_de_leva_feb2026: 'LEVA',
+  seco: 'SECO',
+};
+const cortoEscenario = (id: string) => CORTO_ESCENARIO[id] ?? id.slice(0, 4).toUpperCase();
 
 const Esqueleto = ({ n = 4, alto = 10 }: { n?: number; alto?: number }) => (
   <div>
@@ -121,27 +130,56 @@ export default function App() {
           </span>
         </div>
 
-        <label className="barra-campo">
-          <span className="rotulo">{t.escenario}</span>
-          <select value={escenario} aria-label={t.escenario} onChange={(e) => setEscenario(e.target.value)}>
-            <option value="">{t.enVivo}</option>
-            {escenarios.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}
-          </select>
-        </label>
+        <div className="barra-campo">
+          <Pildoras
+            ariaLabel={t.escenario}
+            valor={escenario}
+            onCambio={setEscenario}
+            opciones={[
+              { id: '', corto: t.vivoCorto, largo: t.enVivo },
+              ...escenarios.map((e) => ({
+                id: e.id as string,
+                corto: cortoEscenario(e.id),
+                largo: e.nombre as string,
+              })),
+            ]}
+          />
+        </div>
 
         <div className="barra-acciones">
-          <select value={temporada} aria-label={t.tempAlta} onChange={(e) => setTemporada(e.target.value as any)}>
-            <option value="alta">{t.tempAlta}</option>
-            <option value="media">{t.tempMedia}</option>
-            <option value="baja">{t.tempBaja}</option>
-          </select>
-          <button type="button" onClick={() => setIdioma(idioma === 'es' ? 'en' : 'es')}>
-            {idioma === 'es' ? 'EN' : 'ES'}
-          </button>
-          <button type="button" onClick={() => setTema(tema === 'noche' ? 'dia' : 'noche')}
-            aria-label={tema === 'noche' ? t.modoDia : t.modoNoche}>
-            {tema === 'noche' ? t.dia : t.noche}
-          </button>
+          <Pildoras
+            ariaLabel={t.tempAlta}
+            valor={temporada}
+            onCambio={(id) => setTemporada(id as 'alta' | 'media' | 'baja')}
+            opciones={[
+              { id: 'alta', corto: t.tempAltaCorto, largo: t.tempAlta },
+              { id: 'media', corto: t.tempMediaCorto, largo: t.tempMedia },
+              { id: 'baja', corto: t.tempBajaCorto, largo: t.tempBaja },
+            ]}
+          />
+          <Pildoras
+            ariaLabel="idioma"
+            valor={idioma}
+            onCambio={(id) => setIdioma(id as Idioma)}
+            opciones={[
+              { id: 'es', corto: 'ES', largo: 'español' },
+              { id: 'en', corto: 'EN', largo: 'english' },
+            ]}
+          />
+          <Pildoras
+            ariaLabel={t.modoNoche}
+            valor={tema}
+            onCambio={(id) => setTema(id as 'noche' | 'dia')}
+            icono={(id) => id === 'dia' ? (
+              <svg viewBox="0 0 12 12" aria-hidden><circle cx="6" cy="6" r="2.2" /><path d="M6 1v1.4M6 9.6V11M1 6h1.4M9.6 6H11M2.4 2.4l1 1M8.6 8.6l1 1M2.4 9.6l1-1M8.6 3.4l1-1" /></svg>
+            ) : (
+              <svg viewBox="0 0 12 12" aria-hidden><path d="M8.2 1.8A4.4 4.4 0 1 0 10.2 8 3.4 3.4 0 0 1 8.2 1.8z" /></svg>
+            )}
+            opciones={[
+              { id: 'noche', corto: t.noche, largo: 'puente' },
+              { id: 'dia', corto: t.dia, largo: 'carta' },
+            ]}
+          />
           <button type="button" className="barra-pitch" onClick={() => setModoPitch(true)} aria-label={t.modoPitch}>
             {t.pitch}
           </button>

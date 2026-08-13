@@ -12,6 +12,7 @@
 
 import { useEffect, useState } from 'react';
 import { getParams, copCorto } from '../lib/api';
+import { Pildoras } from './Pildoras';
 
 interface Meta {
   key: string; grupo: string; label: string; unidad: string;
@@ -68,17 +69,16 @@ export function PanelSupuestos({ onCambio, verTotal, recalculando, sinCaja }: Pr
         Cambia cualquier supuesto. El modelo es tuyo.
       </div>
 
-      <div style={{ display: 'flex', gap: 'var(--esp-3)', marginBottom: 'var(--esp-5)' }}>
-        {(['economia', 'riesgo'] as const).map((g) => (
-          <button key={g} onClick={() => setGrupo(g)}
-            style={{
-              fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)', letterSpacing: '0.08em', textTransform: 'uppercase',
-              borderColor: grupo === g ? 'var(--acento)' : 'var(--sonda)',
-              color: grupo === g ? 'var(--acento)' : 'var(--papel-fant)',
-            }}>
-            {g}
-          </button>
-        ))}
+      <div style={{ marginBottom: 'var(--esp-5)' }}>
+        <Pildoras
+          ariaLabel="grupo de supuestos"
+          valor={grupo}
+          onCambio={(id) => setGrupo(id as 'economia' | 'riesgo')}
+          opciones={[
+            { id: 'economia', corto: 'ECO', largo: 'economía' },
+            { id: 'riesgo', corto: 'RIESGO', largo: 'riesgo' },
+          ]}
+        />
       </div>
 
       <div style={{ maxHeight: 280, overflowY: 'auto', paddingRight: 'var(--esp-2)' }}>

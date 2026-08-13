@@ -18,11 +18,28 @@ cd web && npm install && npm run dev   # :5173
 ## Estado al 2026-08-13
 
 **Ramas:** todas las de feature (`feat/marea-base`, `feat/vision-canal`,
-`feat/fontumi`, `feat/lectura-y-pitch`) están mergeadas a `main` vía PRs
-#1-#5. `main` es la única rama que hay que trabajar de acá en adelante —
-todo el trabajo pendiente sale de ahí. Las ramas remotas no se borraron
-(quedan como historial), pero están todas al día con `main` salvo que
-alguien abra una nueva.
+`feat/fontumi`, `feat/lectura-y-pitch`, `feat/hud-aire`) están mergeadas
+a `main` vía PRs #1-#7. Verificado explícitamente: cero commits en
+ninguna rama remota que no estén ya en `main` (`git log
+origin/main..origin/<rama>` vacío para las cinco). `main` es la única
+rama que hay que trabajar de acá en adelante. Las ramas remotas no se
+borraron (quedan como historial).
+
+**Repo renombrado:** GitHub avisa en cada push que el repo se movió a
+`https://github.com/HCHAPS404/BIT-HILLLS-MAREA.git`. El push sigue
+funcionando (redirect automático), pero el remote local de esta sesión
+no se actualizó (bloqueado por el modo automático como acción sensible).
+Si algo empieza a fallar con el remote, ese es el motivo — correr:
+`git remote set-url origin https://github.com/HCHAPS404/BIT-HILLLS-MAREA.git`
+
+**`PITCH-GUION.md`:** se había sacado del repo (gitignored, guion
+personal de Helmut). Andres lo volvió a commitear con el mismo contenido
+en `feat/lectura-y-pitch` (commit `109db70`) porque construyó
+`ModoPresentacion.tsx` con un cronómetro de 4 min referenciándolo en un
+comentario — **no es una dependencia de código real**, el sitio compila
+y corre igual sin el archivo. Quedó en `main` de nuevo tal cual. Si se
+quiere volver a sacar, coordinarlo con Andres primero (ya lo conoce y lo
+usa como referencia).
 
 **Deploy en vivo:** `main` es lo que corre en producción ahora mismo.
 

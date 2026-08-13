@@ -1,0 +1,396 @@
+/**
+ * MAREA — SISTEMA DE DISEÑO
+ *
+ * TESIS: esto no es un dashboard, es un INSTRUMENTO NÁUTICO.
+ * Carta de navegación, no panel administrativo.
+ *
+ * El día del evento van a existir seis dashboards con tarjetas redondeadas
+ * grises sobre slate-50, shadcn por defecto y un gráfico de barras, todos
+ * salidos del mismo prompt. La diferenciación no es decorativa: es la única
+ * forma de que el jurado recuerde cuál era el nuestro tres horas después.
+ *
+ * REGLAS QUE NO SE ROMPEN:
+ *   1. Radios del sistema de la Plataforma Psicológica (6/8/12/pill).
+ *      Los controles van en píldora; las filas densas, en radio suave.
+ *   2. Sin sombras duras ni negras. El relieve se hace con anillo hairline
+ *      + luz interior en el canto superior: material, no drama.
+ *   3. Todo número que sea DATO va en monoespaciada con tabular-nums.
+ *      Los dígitos no bailan al actualizarse.
+ *   4. Retícula de papel milimetrado en los paneles de datos.
+ *   5. El badge SIN CALIBRAR es visible, no escondido.
+ *      La honestidad forma parte de la estética.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+/**
+ * DOS MODOS, Y NO SON "CLARO / OSCURO" GENÉRICOS.
+ *
+ * Un puente de barco alterna entre MODO DÍA y MODO NOCHE — es práctica real
+ * de navegación, no preferencia de gusto. Y las cartas náuticas de papel se
+ * imprimen en crema con tinta azul marino.
+ *
+ *   NOCHE (por defecto) → instrumento de puente: soporte abismo, tinta clara
+ *   DÍA                 → la carta impresa: papel crema, tinta azul marino
+ *
+ * Los roles NO se invierten arbitrariamente: `--papel` es siempre la tinta y
+ * `--abismo` siempre el soporte. Por eso un solo juego de variables sirve
+ * para los dos modos sin tocar un solo componente.
+ */
+
+/**
+ * PRINCIPIO DE COLOR: LA SATURACIÓN ES INFORMACIÓN, NO DECORACIÓN.
+ *
+ * El terreno es cálido y desaturado — morado apagado, lavanda, grises con
+ * tinte violeta. Nada del chasis compite por atención.
+ *
+ * La escala de alerta es lo ÚNICO saturado de la interfaz. Por eso una zona
+ * en rojo salta de inmediato: no porque el rojo sea fuerte, sino porque todo
+ * lo demás decidió no serlo. Si el chasis también gritara, el rojo sería una
+ * voz más en una habitación ruidosa.
+ *
+ * Regla operativa: si un color no codifica severidad, va desaturado.
+ */
+
+:root, [data-tema='noche'] {
+  /* ── Instrumento de puente, de noche: negro carbón NEUTRO ──
+     Sin tinte violeta en el chasis. El carbón es acromático a propósito:
+     deja que el lavanda del acento y la escala de alerta sean lo único
+     con matiz en toda la pantalla. */
+  --abismo:      #131315;   /* soporte */
+  --profundo:    #1B1B1E;   /* superficies */
+  --sonda:       #2B2B2F;   /* bordes, retícula */
+  --sonda-alta:  #3D3D43;   /* bordes activos */
+  --papel:       #ECEAEE;   /* tinta */
+  --papel-tenue: #9E9CA3;
+  --papel-fant:  #6B696F;
+
+  /* ── Escala de alerta: lo único saturado ── */
+  --seco:    #7CC3A5;
+  --vigila:  #D7B877;
+  --alerta:  #E29472;
+  --critico: #E0574A;
+
+  --acento: #B9A6DD;   /* lavanda: dato vivo, selección */
+  --marea:  #8A76C4;
+}
+
+[data-tema='dia'] {
+  /* ── La carta impresa ── */
+  --abismo:      #F4F1F6;
+  --profundo:    #FDFCFE;
+  --sonda:       #E7E2EA;
+  --sonda-alta:  #CFC8D6;
+  --papel:       #242128;
+  --papel-tenue: #625C68;
+  --papel-fant:  #928A99;
+
+  /* Mismos matices, oscurecidos para contrastar sobre papel. */
+  --seco:    #397A61;
+  --vigila:  #8E6B22;
+  --alerta:  #C56B45;
+  --critico: #AE3623;
+
+  --acento: #6F5AA8;
+  --marea:  #5B4B91;
+}
+
+:root {
+  --linea: 1px solid var(--sonda);
+  /* Movimiento con masa: arranca rápido y asienta. Nunca `ease` ni `linear`. */
+  --curva: cubic-bezier(0.32, 0.72, 0, 1);
+  --linea-viva: 1px solid var(--acento);
+
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --display: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
+
+  /* Radios tomados del sistema de la Plataforma Psicológica. */
+  --r-sm: 6px;
+  --r: 8px;
+  --r-lg: 12px;
+  --r-pill: 999px;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0; padding: 0; height: 100%;
+  background-color: var(--abismo);
+  color: var(--papel);
+  font-family: var(--display);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Todo dato numérico. Sin excepciones. */
+.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Etiquetas en versalitas, como en una carta náutica */
+.rotulo {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--papel-fant);
+  font-weight: 500;
+}
+
+/* Papel milimetrado: retícula sutil en paneles de datos */
+.milimetrado {
+  background-image:
+    linear-gradient(var(--sonda) 1px, transparent 1px),
+    linear-gradient(90deg, var(--sonda) 1px, transparent 1px);
+  background-size: 8px 8px;
+  background-position: -1px -1px;
+  opacity: 1;
+}
+.milimetrado::before {
+  content: ''; position: absolute; inset: 0;
+  background: inherit; opacity: 0.28; pointer-events: none;
+}
+
+/**
+ * MATERIAL: PLACA EN BANDEJA, NO TARJETA SOBRE FONDO.
+ *
+ * Un panel plano con borde gris de 1px es el default de todo el mundo. Un
+ * instrumento real no se ve así: es una placa asentada en una bandeja, con
+ * un canto que atrapa la luz arriba y sombra donde apoya.
+ *
+ * Se consigue con tres capas de box-shadow y CERO cambios de DOM:
+ *   1. anillo hairline  — sustituye al borde gris; alfa baja sobre la tinta,
+ *                         así se adapta solo a modo día y noche
+ *   2. luz superior     — inset en el canto de arriba: el brillo del bisel
+ *   3. asiento          — sombra difusa, nunca dura ni negra
+ *
+ * Sin sombras duras: la jerarquía sigue siendo por contraste, no por drama.
+ */
+.panel {
+  /* background-color, NO el atajo `background`: el atajo resetea
+     background-image y borraba la retícula de .milimetrado. */
+  background-color: var(--profundo);
+  border: none;
+  border-radius: var(--r-lg);
+  position: relative;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--papel) 9%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--papel) 8%, transparent),
+    0 2px 10px color-mix(in srgb, var(--abismo) 55%, transparent);
+}
+
+/**
+ * DOBLE BISEL — para el elemento héroe (el Reloj de Marea).
+ * Cáscara exterior + núcleo interior con radios CONCÉNTRICOS: el radio
+ * interior es el exterior menos el padding, si no las curvas no son
+ * paralelas y el ojo lo detecta aunque no sepa por qué.
+ */
+.bisel {
+  padding: 6px;
+  border-radius: var(--r-lg);
+  background-color: color-mix(in srgb, var(--papel) 4%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--papel) 7%, transparent);
+}
+.bisel > .nucleo {
+  border-radius: calc(var(--r-lg) - 6px);
+  background-color: var(--abismo);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--papel) 7%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--papel) 6%, transparent);
+  padding: 10px;
+}
+
+/* Banda diagonal para TODO lo que sea simulación. Nunca se disfraza de dato real. */
+.simulado {
+  background-image: repeating-linear-gradient(
+    45deg, transparent, transparent 6px,
+    color-mix(in srgb, var(--vigila) 14%, transparent) 6px,
+    color-mix(in srgb, var(--vigila) 14%, transparent) 12px
+  );
+}
+
+.badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border: 1px solid currentColor;
+  border-radius: var(--r-pill);
+  display: inline-block;
+}
+.badge-sin-calibrar { color: var(--alerta); }
+.badge-simulado     { color: var(--vigila); }
+.badge-vivo         { color: var(--acento); }
+
+/* Onda literal en el agua cuando entra una alerta */
+@keyframes onda {
+  0%   { transform: scale(0.35); opacity: 0.85; }
+  100% { transform: scale(2.6);  opacity: 0; }
+}
+.onda {
+  animation: onda 2.4s var(--curva) infinite;
+  transform-origin: center;
+}
+
+@keyframes latido { 0%,100% { opacity: 1 } 50% { opacity: 0.35 } }
+.latido { animation: latido 1.8s ease-in-out infinite; }
+
+button, input, select {
+  font-family: var(--mono);
+  background-color: var(--abismo);
+  color: var(--papel);
+  border: none;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--papel) 12%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--papel) 7%, transparent);
+}
+
+/* Controles en píldora, como en la Plataforma Psicológica. */
+button, select {
+  border-radius: var(--r-pill);
+  padding-inline: 12px;
+  cursor: pointer;
+  transition: box-shadow 220ms var(--curva), color 220ms var(--curva);
+}
+button:hover, select:hover {
+  color: var(--acento);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--acento) 55%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--papel) 10%, transparent);
+}
+/* Se hunde al presionar: masa física, no un cambio de color. */
+button:active { transform: scale(0.975); }
+button:focus-visible, select:focus-visible {
+  outline: 2px solid var(--acento); outline-offset: 2px;
+}
+
+/* Las filas del ranking son superficies, no píldoras: con radio de píldora
+   una lista densa se vuelve ilegible. Radio suave y ya. */
+.fila-zona { border-radius: var(--r); padding-inline: 10px; }
+
+input[type="range"] { accent-color: var(--acento); background: transparent; border: none; }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--abismo); }
+::-webkit-scrollbar-thumb { background: var(--sonda-alta); border-radius: var(--r-pill); }
+
+/* La UI nunca desborda horizontalmente */
+.scroll-x { overflow-x: auto; }
+
+/* ───────────────────────── LAYOUT ─────────────────────────
+   Escritorio: mapa a sangre completa, HUD flotando encima.
+   Móvil: el HUD flotante taparía el mapa entero, así que la página
+   pasa a scroll vertical normal — mapa arriba, paneles abajo.
+   El jurado puede abrir esto en el celular; no es hipotético. */
+
+.layout { position: fixed; inset: 0; overflow: hidden; }
+.capa-mapa { position: absolute; inset: 0; }
+
+.hud {
+  position: absolute; top: 66px; bottom: 12px; z-index: 10;
+  display: flex; flex-direction: column; gap: 9px;
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.hud-izq { left: 12px; width: 272px; }
+.hud-der { right: 12px; width: 316px; }
+
+/* Escritorio: la barra flota sobre el mapa con degradado.
+   Ojo: esto vive en CSS y NO en estilo inline, porque el inline le ganaría
+   a la media query de móvil y la barra seguiría tapando el mapa. */
+.barra-sup {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 12;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 10px 14px;
+  /* Degradado derivado del token, para que siga al modo día/noche. */
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--abismo) 96%, transparent),
+    color-mix(in srgb, var(--abismo) 74%, transparent) 70%,
+    transparent
+  );
+  border-bottom: var(--linea);
+}
+
+/**
+ * NO transicionar background-color/color de forma global.
+ *
+ * Chromium NO vuelve a disparar una transición cuando el valor viene de una
+ * var() que cambia en un ancestro: el elemento se queda pintado con el color
+ * viejo aunque la variable ya resolvió al nuevo. Es exactamente lo que pasaba
+ * al cambiar de modo — los tokens cambiaban y los paneles seguían oscuros.
+ *
+ * El cambio de modo es instantáneo a propósito. Solo se transiciona lo
+ * interactivo, que sí cambia por estado del elemento y no por el tema.
+ */
+button, select, input, .fila-zona {
+  transition: box-shadow 220ms var(--curva), color 220ms var(--curva);
+}
+
+/* ─── MARCO DE INSTRUMENTO ───────────────────────────────
+   Marcas de registro en las esquinas, como una plancha de impresión o el
+   bisel de un instrumento. Es lo que separa "tarjeta de dashboard" de
+   "placa de instrumento", y cuesta cuatro pseudo-elementos. */
+.marco { position: relative; border-radius: var(--r-lg); }
+
+/* ─── CARTUCHO (bloque de título de carta náutica) ─── */
+.cartucho {
+  position: absolute; left: 12px; bottom: 12px; z-index: 11;
+  width: 224px; padding: 13px 14px;
+  border-radius: var(--r-lg);
+  background-color: color-mix(in srgb, var(--profundo) 94%, transparent);
+  border: none;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--papel) 10%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--papel) 8%, transparent),
+    0 4px 18px color-mix(in srgb, var(--abismo) 50%, transparent);
+  backdrop-filter: blur(2px);
+}
+.cartucho-x {
+  position: absolute; top: 5px; right: 6px;
+  border: none; background: none; color: var(--papel-fant);
+  font-size: 14px; line-height: 1; padding: 0 5px;
+}
+.cartucho-x:hover { color: var(--critico); }
+.cartucho-cerrado {
+  position: absolute; left: 12px; bottom: 12px; z-index: 11;
+  padding: 6px 12px; background-color: var(--profundo); border: var(--linea);
+  border-radius: var(--r-pill);
+}
+
+@media (max-width: 900px) {
+  .cartucho, .cartucho-cerrado { position: static; width: auto; margin: 9px 9px 0; }
+}
+
+@media (max-width: 900px) {
+  .layout { position: static; inset: auto; overflow: visible; min-height: 100%; }
+  .capa-mapa { position: relative; inset: auto; height: 46vh; min-height: 260px; }
+  .hud {
+    position: static; width: auto; max-height: none;
+    overflow: visible; margin: 9px 9px 0;
+  }
+  .hud-izq, .hud-der { left: auto; right: auto; width: auto; }
+  .hud:last-child { margin-bottom: 16px; }
+
+  /* En escritorio la barra flota sobre el mapa. En móvil el mapa solo mide
+     ~374 px de alto y la barra le comía la mitad, así que entra en el flujo. */
+  .barra-sup {
+    position: sticky; top: 0;
+    background: var(--abismo);
+    border-bottom: var(--linea);
+  }
+  .layout { display: flex; flex-direction: column; }
+  .barra-sup { order: -1; }
+}
+
+/* ── Esqueleto de carga: barra de sondaje recorriendo, no un spinner ── */
+@keyframes sondaje { 0% { background-position: -180% 0 } 100% { background-position: 280% 0 } }
+.esqueleto {
+  border-radius: var(--r-sm);
+  background: linear-gradient(90deg, var(--sonda) 0%, var(--sonda-alta) 45%, var(--sonda) 90%);
+  background-size: 220% 100%;
+  animation: sondaje 1.25s linear infinite;
+  border-radius: var(--r);
+}
+.esqueleto-linea { height: 10px; margin-bottom: 7px; }

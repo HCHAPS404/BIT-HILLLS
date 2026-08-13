@@ -63,7 +63,7 @@ app.get('/api/zonas', async (c) => {
   const escenario = c.req.query('escenario') || undefined;
   const temporada = (c.req.query('temporada') as any) || (c.env.TEMPORADA as any) || 'alta';
   try {
-    const r = await evaluar({ escenario, temporada, horas: 72 });
+    const r = await evaluar({ escenario, temporada, horas: 72, db: c.env.DB });
     return c.json(aGeoJSON(r));
   } catch (e: any) {
     return c.json({ error: String(e?.message ?? e) }, 500);
@@ -80,7 +80,7 @@ app.get('/api/riesgo/:zona', async (c) => {
   const temporada = (c.req.query('temporada') as any) || 'alta';
   const horas = Number(c.req.query('h') ?? 72);
 
-  const r = await evaluar({ escenario, temporada, horas });
+  const r = await evaluar({ escenario, temporada, horas, db: c.env.DB });
   const z = r.zonas.find((x) => x.zona.id === id)!;
 
   return c.json({
@@ -120,7 +120,7 @@ app.post('/api/simular', async (c) => {
   type Cuerpo = { overrides?: ParamsOverride; escenario?: string; temporada?: any };
   const body = await c.req.json<Cuerpo>().catch((): Cuerpo => ({}));
   try {
-    const r = await evaluar({ overrides: body.overrides, escenario: body.escenario, temporada: body.temporada ?? 'alta', horas: 72 });
+    const r = await evaluar({ overrides: body.overrides, escenario: body.escenario, temporada: body.temporada ?? 'alta', horas: 72, db: c.env.DB });
     return c.json({ geojson: aGeoJSON(r), resumen: r.zonas.map((z) => ({ id: z.zona.id, nombre: z.zona.nombre, iri: z.pico.iri, banda: z.pico.banda, ver_cop: z.ver_cop })), ver_total_cop: r.zonas.reduce((a, z) => a + z.ver_cop, 0) });
   } catch (e: any) {
     return c.json({ error: String(e?.message ?? e) }, 400);
@@ -130,7 +130,10 @@ app.post('/api/simular', async (c) => {
 /**
  * Reporte ciudadano de canal obstruido. Cierra el ciclo del producto:
  * el ciudadano que reporta mejora la predicción que protege al negocio que paga.
- * TODO(equipo): conectar modelo de visión para severidad 0–3 desde la foto.
+ * Ya alimenta el motor (ver adapters/reportes.ts) — el siguiente request a
+ * /api/zonas o /api/riesgo/:zona para esta zona refleja el reporte.
+ * TODO(equipo): conectar modelo de visión para severidad 0–3 desde la foto
+ * (feat/vision-canal) — hoy `severidad` la pone el cliente directamente.
  */
 app.post('/api/reportes', async (c) => {
   const b = await c.req.json<{ zona_id: string; lat?: number; lon?: number; foto_url?: string; severidad?: number; telefono?: string }>().catch(() => null);
@@ -139,8 +142,8 @@ app.post('/api/reportes', async (c) => {
   const sev = Math.max(0, Math.min(3, Number(b.severidad ?? 2)));
   if (c.env.DB) {
     await c.env.DB.prepare(
-      'INSERT INTO reportes (zona_id, lat, lon, foto_url, severidad, telefono) VALUES (?,?,?,?,?,?)',
-    ).bind(b.zona_id, b.lat ?? null, b.lon ?? null, b.foto_url ?? null, sev, b.telefono ?? null).run();
+      'INSERT INTO reportes (zona_id, lat, lon, foto_url, severidad, confianza, pendiente_revision, telefono) VALUES (?,?,?,?,?,?,?,?)',
+    ).bind(b.zona_id, b.lat ?? null, b.lon ?? null, b.foto_url ?? null, sev, 1.0, 0, b.telefono ?? null).run();
   }
   return c.json({ ok: true, zona_id: b.zona_id, severidad: sev, obstruccion_estimada: sev / 3, persistido: !!c.env.DB });
 });
@@ -152,7 +155,7 @@ export default {
   async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext) {
     ctx.waitUntil(
       (async () => {
-        const r = await evaluar({ temporada: (env.TEMPORADA as any) ?? 'alta' });
+        const r = await evaluar({ temporada: (env.TEMPORADA as any) ?? 'alta', db: env.DB });
         const criticas = r.zonas.filter((z) => z.pico.banda === 'naranja' || z.pico.banda === 'rojo');
         console.log(JSON.stringify({ evento: 'evaluacion', fuente: r.fuente, degradado: r.degradado, criticas: criticas.map((z) => ({ id: z.zona.id, iri: z.pico.iri, banda: z.pico.banda, ver_cop: z.ver_cop })) }));
 

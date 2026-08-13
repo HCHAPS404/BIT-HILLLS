@@ -16,6 +16,7 @@ import { ZONAS } from '../core/zonas';
 import { leerLluvia } from '../adapters/openmeteo';
 import { leerMar } from '../adapters/marine';
 import { generarEscenario, getEscenario, ESCENARIOS } from '../adapters/escenarios';
+import { obstruccionDesdeReportes, leerReportesRecientes } from '../adapters/reportes';
 
 export interface PuntoSerie {
   t: string;
@@ -82,6 +83,8 @@ export interface OpcionesEval {
   overrides?: ParamsOverride;
   temporada?: keyof typeof P.temporada;
   horas?: number;
+  /** Si hay D1, los reportes ciudadanos recientes alimentan la obstrucción. */
+  db?: D1Database;
 }
 
 export async function evaluar(opts: OpcionesEval = {}): Promise<Resultado> {
@@ -120,17 +123,23 @@ export async function evaluar(opts: OpcionesEval = {}): Promise<Resultado> {
       avisos.push('FALLBACK: mostrando escenario semilla, no datos en vivo.');
     }
 
-    // Obstrucción: por ahora el estado base de la zona. Los reportes
-    // ciudadanos (POST /api/reportes) sobreescriben esta señal.
-    for (const z of zonas) {
-      const horas = [...new Set(senales.filter((s) => s.zona_id === z.id).map((s) => s.t_valido))];
-      for (const t of horas) {
-        senales.push({
-          zona_id: z.id, tipo: 'obstruccion', valor: z.obstruccion_base,
-          unidad: '0-1', t_valido: t, confianza: 0.6, fuente: 'estado-base-zona',
-        });
-      }
-    }
+    // Obstrucción: reportes ciudadanos recientes (D1) si hay base de datos;
+    // sin reportes en la ventana, o sin D1, cae al estado base de la zona.
+    const señalesObstruccion = await Promise.all(
+      zonas.map(async (z) => {
+        const horas = [...new Set(senales.filter((s) => s.zona_id === z.id).map((s) => s.t_valido))];
+        let reportes: Awaited<ReturnType<typeof leerReportesRecientes>> = [];
+        if (opts.db) {
+          try {
+            reportes = await leerReportesRecientes(opts.db, z.id);
+          } catch (e: any) {
+            avisos.push(`Reportes ciudadanos no disponibles para ${z.id}: ${e?.message ?? e}`);
+          }
+        }
+        return horas.map((t) => obstruccionDesdeReportes(reportes, z.id, t, z.obstruccion_base));
+      }),
+    );
+    senales.push(...señalesObstruccion.flat());
   }
 
   const limite = opts.horas ?? 72;

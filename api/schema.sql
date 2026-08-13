@@ -39,15 +39,21 @@ CREATE TABLE evaluaciones (
 -- Reporte ciudadano de canal obstruido: foto + ubicación → severidad 0–3.
 -- Alimenta el componente O del IRI. Cierra el ciclo del modelo de negocio.
 CREATE TABLE reportes (
-  id             INTEGER PRIMARY KEY AUTOINCREMENT,
-  zona_id        TEXT NOT NULL,
-  lat            REAL,
-  lon            REAL,
-  foto_url       TEXT,
-  severidad      INTEGER CHECK(severidad BETWEEN 0 AND 3),
-  descripcion_ia TEXT,
-  telefono       TEXT,
-  t              TEXT NOT NULL DEFAULT (datetime('now'))
+  id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+  zona_id            TEXT NOT NULL,
+  lat                REAL,
+  lon                REAL,
+  foto_url           TEXT,
+  severidad          INTEGER CHECK(severidad BETWEEN 0 AND 3),
+  -- 0-1. Certeza del reporte: 1.0 si lo puso un humano, la confianza del
+  -- clasificador de fotos si viene de feat/vision-canal.
+  confianza          REAL NOT NULL DEFAULT 1.0,
+  -- El clasificador de visión marca 1 cuando no está seguro; ese reporte
+  -- pesa la mitad en obstruccionDesdeReportes() hasta revisión humana.
+  pendiente_revision INTEGER NOT NULL DEFAULT 0 CHECK(pendiente_revision IN (0,1)),
+  descripcion_ia     TEXT,
+  telefono           TEXT,
+  t                  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX idx_reportes ON reportes(zona_id, t);
 

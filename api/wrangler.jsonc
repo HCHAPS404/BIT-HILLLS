@@ -10,11 +10,11 @@
   // Evalúa todas las zonas cada 15 minutos.
   "triggers": { "crons": ["*/15 * * * *"] },
 
-  // D1 es OPCIONAL. La API funciona sin base de datos (calcula en vivo).
-  // Cuando exista, descomentar y pegar el database_id de `npm run db:create`.
-  // "d1_databases": [
-  //   { "binding": "DB", "database_name": "marea", "database_id": "PEGAR_AQUI" }
-  // ],
+  // D1 es opcional en el sentido de que la API sigue calculando en vivo sin
+  // esto — pero con esto, los reportes ciudadanos alimentan la obstrucción.
+  "d1_databases": [
+    { "binding": "DB", "database_name": "marea", "database_id": "1d3a5d2e-15f6-4d1b-8fb1-aa27dc3a6f07" }
+  ],
 
   "vars": {
     "TEMPORADA": "alta"

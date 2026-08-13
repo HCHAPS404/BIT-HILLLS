@@ -184,7 +184,10 @@ export const ModoPresentacion: React.FC<ModoPresentacionProps> = ({ onClose, onP
 
           <div style={{ display: 'inline-flex', gap: 'var(--esp-3)', marginBottom: 'var(--esp-6)' }}>
             <button
-              onClick={() => setSimMarea('bajamar')}
+              onClick={() => {
+                setSimMarea('bajamar');
+                onProbarEscenario?.('aguacero_marea_baja');
+              }}
               style={{
                 fontSize: 'var(--texto-md)',
                 padding: 'var(--esp-3) var(--esp-6)',
@@ -196,13 +199,16 @@ export const ModoPresentacion: React.FC<ModoPresentacionProps> = ({ onClose, onP
               🌊 BAJAMAR
             </button>
             <button
-              onClick={() => setSimMarea('pleamar')}
+              onClick={() => {
+                setSimMarea('pleamar');
+                onProbarEscenario?.('aguacero_marea_alta');
+              }}
               style={{
                 fontSize: 'var(--texto-md)',
                 padding: 'var(--esp-3) var(--esp-6)',
                 background: simMarea === 'pleamar' ? 'var(--critico)' : 'transparent',
                 borderColor: 'var(--critico)',
-                color: '#fff',
+                color: simMarea === 'pleamar' ? 'var(--papel)' : 'var(--critico)',
                 fontWeight: 800,
               }}>
               🔴 PLEAMAR
@@ -349,7 +355,7 @@ export const ModoPresentacion: React.FC<ModoPresentacionProps> = ({ onClose, onP
       <main
         style={{
           flex: 1,
-          padding: 'var(--esp-8)',
+          padding: 'var(--esp-6)',
           maxWidth: 1100,
           width: '100%',
           margin: '0 auto',

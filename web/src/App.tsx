@@ -17,6 +17,7 @@ import { LecturaZona, ComponentesZona } from './components/LecturaZona';
 import { EstadoInicial } from './components/EstadoInicial';
 import { SeccionColapsable } from './components/SeccionColapsable';
 import { Definicion } from './components/Definicion';
+import { ModoPresentacion } from './components/ModoPresentacion';
 import {
   getZonas, getRiesgo, getEscenarios, simular,
   COLOR_BANDA, copCorto, type GeoResp, type DetalleZona,
@@ -49,8 +50,21 @@ export default function App() {
   const [tema, setTema] = useState<'noche' | 'dia'>(
     () => (localStorage.getItem('marea:tema') as 'noche' | 'dia') ?? 'noche',
   );
+  const [modoPitch, setModoPitch] = useState(false);
   const t = T[idioma];
   const def = DEFINICIONES[idioma];
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'p' && e.key !== 'P') return;
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      e.preventDefault();
+      setModoPitch((v) => !v);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-tema', tema);
@@ -137,6 +151,13 @@ export default function App() {
             aria-label={tema === 'noche' ? t.modoDia : t.modoNoche}
             style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)', letterSpacing: '0.08em' }}>
             {tema === 'noche' ? '\u25D1 ' + t.dia : '\u25D0 ' + t.noche}
+          </button>
+
+          <button
+            onClick={() => setModoPitch(true)}
+            aria-label={t.modoPitch}
+            style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)', letterSpacing: '0.08em', color: 'var(--acento)' }}>
+            {t.pitch}
           </button>
         </div>
       </header>
@@ -331,6 +352,13 @@ export default function App() {
           </>
         )}
       </aside>
+
+      {modoPitch && (
+        <ModoPresentacion
+          onClose={() => setModoPitch(false)}
+          onProbarEscenario={(id) => setEscenario(id)}
+        />
+      )}
     </div>
   );
 }

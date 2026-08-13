@@ -107,10 +107,24 @@ Todos los gaps de integración conocidos están cerrados. Lo que queda es
 trabajo de fondo, no bloqueante:
 
 1. Rotar el `CLOUDFLARE_API_TOKEN` si en algún momento se compartió en texto plano fuera de GitHub Secrets.
-2. Conectar `FontumiNotifier` a la API real cuando llegue la cuenta sandbox — `ConsoleNotifier` cubre el demo mientras tanto.
+2. **Fontumi real: EN STANDBY, decisión explícita del equipo (2026-08-13).**
+   No es un bloqueo técnico — `ConsoleNotifier` cubre el demo/pitch sin
+   riesgo. Cuando se retome: el token que compartieron era login de
+   dashboard (usuario/password), no API token — no se usó, se descartó.
+   Además, los endpoints en `FontumiNotifier` (`api.fontumi.co/v1/...`)
+   son adivinados y probablemente estén mal — el dashboard real vive en
+   `one.fontumi.ai/v2/...`, dominio y versión distintos. Antes de
+   reconectar: conseguir el API token real desde Settings/API del
+   dashboard (no el login) y confirmar los endpoints/auth reales.
 3. Calibración del modelo IRI contra datos de OAGRD/ERA5 (ver README, sección "Honestidad del modelo").
 4. Opcional: guardar la foto del reporte en R2 para historial visual.
 5. `.pages.dev` de producción muestra un chunk JS de ~1 MB (aviso de Vite en el build) — no bloquea nada, pero si hay tiempo, `manualChunks` ayudaría a la carga inicial.
+
+## Pitch
+
+`PITCH-SLIDES.md` (slides, Marp) y `PITCH-GUION.md` (guion hablado,
+~4 min, con respuestas a preguntas esperadas del jurado) ya están listos
+en la raíz del repo.
 
 ## Resuelto
 

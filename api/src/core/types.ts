@@ -76,6 +76,7 @@ export interface Evaluacion {
 
 export interface Env {
   DB?: D1Database;
+  AI?: Ai;
   TEMPORADA?: string;
   FONTUMI_TOKEN?: string;
 }

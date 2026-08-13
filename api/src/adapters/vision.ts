@@ -9,14 +9,14 @@
  * es una zona que se inunda con la mitad de lluvia.
  *
  * Corre con Workers AI (binding AI) — no requiere clave externa ni tarjeta.
- * Añadir a wrangler.jsonc:   "ai": { "binding": "AI" }
  *
  * REGLA: si el modelo no está seguro, devuelve `pendiente_revision: true` y
  * la señal entra con confianza baja. NUNCA inventa una severidad para rellenar.
  * Un dato inventado en el motor de riesgo es peor que un dato faltante.
+ *
+ * La agregación de reportes en una señal de obstrucción (decaimiento
+ * exponencial, etc.) vive en `adapters/reportes.ts` — no se duplica acá.
  */
-
-import type { Signal } from '../core/types';
 
 export interface LecturaCanal {
   severidad: 0 | 1 | 2 | 3;
@@ -33,22 +33,32 @@ const ESCALA = `Clasifica la obstrucción del canal o sumidero en la foto:
 3 = obstruido, el agua no pasa o está estancada`;
 
 /**
- * TODO(quien tome esta rama):
- *  1. Añadir el binding "ai" en wrangler.jsonc.
- *  2. Verificar el nombre del modelo de visión disponible en la cuenta.
- *  3. Conectar en POST /api/reportes: foto → severidad → Signal 'obstruccion'.
- *  4. Guardar la foto en R2 si se quiere historial (opcional para el demo).
+ * Pendiente (no bloquea el demo): guardar la foto en R2 si se quiere
+ * historial visual de reportes, hoy solo se persiste la clasificación.
  */
-export async function clasificarCanal(ai: any, imagen: ArrayBuffer): Promise<LecturaCanal> {
+const TIMEOUT_MS = 20_000;
+
+/** El modelo no siempre responde rápido — sin límite, cuelga la respuesta al ciudadano. */
+function conTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`timeout tras ${ms}ms`)), ms)),
+  ]);
+}
+
+export async function clasificarCanal(ai: Ai, imagen: ArrayBuffer): Promise<LecturaCanal> {
   const bytes = [...new Uint8Array(imagen)];
 
-  const r = await ai.run('@cf/llava-hf/llava-1.5-7b-hf', {
-    image: bytes,
-    prompt: `${ESCALA}\n\nResponde SOLO con JSON: {"severidad":0-3,"confianza":0-1,"descripcion":"breve"}. Si la foto no muestra un canal o sumideroreconocible, responde {"severidad":0,"confianza":0,"descripcion":"no es un canal"}.`,
-    max_tokens: 160,
-  });
+  const r = await conTimeout(
+    ai.run('@cf/llava-hf/llava-1.5-7b-hf', {
+      image: bytes,
+      prompt: `${ESCALA}\n\nResponde SOLO con JSON: {"severidad":0-3,"confianza":0-1,"descripcion":"breve"}. Si la foto no muestra un canal o sumidero reconocible, responde {"severidad":0,"confianza":0,"descripcion":"no es un canal"}.`,
+      max_tokens: 160,
+    }),
+    TIMEOUT_MS,
+  );
 
-  const texto: string = r?.description ?? r?.response ?? '';
+  const texto: string = r?.description ?? '';
   const m = texto.match(/\{[\s\S]*\}/);
 
   // Sin JSON parseable no adivinamos: va a revisión humana.
@@ -70,42 +80,4 @@ export async function clasificarCanal(ai: any, imagen: ArrayBuffer): Promise<Lec
   } catch {
     return { severidad: 0, confianza: 0, descripcion: 'JSON inválido del modelo', pendiente_revision: true };
   }
-}
-
-/**
- * Reportes de una zona → señal de obstrucción 0–1.
- * Decaimiento exponencial con vida media de 10 días: un canal reportado hace
- * un mes ya no dice nada del estado de hoy, pero uno de ayer sí. Los reportes
- * marcados como pendientes de revisión pesan la mitad.
- */
-export function obstruccionDesdeReportes(
-  reportes: { severidad: number; t: string; pendiente_revision?: boolean }[],
-  zona_id: string,
-  t_valido: string,
-  base: number,
-): Signal {
-  const ahora = Date.now();
-  const VIDA_MEDIA_MS = 10 * 24 * 3600 * 1000;
-
-  let num = 0, den = 0;
-  for (const r of reportes) {
-    const edad = ahora - new Date(r.t).getTime();
-    if (edad < 0) continue;
-    const peso = Math.pow(0.5, edad / VIDA_MEDIA_MS) * (r.pendiente_revision ? 0.5 : 1);
-    num += (r.severidad / 3) * peso;
-    den += peso;
-  }
-
-  // Sin reportes recientes caemos al estado base declarado de la zona.
-  const valor = den > 0 ? num / den : base;
-
-  return {
-    zona_id,
-    tipo: 'obstruccion',
-    valor: Math.round(valor * 1000) / 1000,
-    unidad: '0-1',
-    t_valido,
-    confianza: den > 0 ? Math.min(1, 0.5 + den / 6) : 0.4,
-    fuente: den > 0 ? 'reportes-ciudadanos' : 'estado-base-zona',
-  };
 }

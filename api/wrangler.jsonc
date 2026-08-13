@@ -16,6 +16,9 @@
     { "binding": "DB", "database_name": "marea", "database_id": "1d3a5d2e-15f6-4d1b-8fb1-aa27dc3a6f07" }
   ],
 
+  // Clasificador de severidad de canal desde foto (api/src/adapters/vision.ts).
+  "ai": { "binding": "AI" },
+
   "vars": {
     "TEMPORADA": "alta"
   }

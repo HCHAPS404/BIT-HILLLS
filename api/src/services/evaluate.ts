@@ -132,8 +132,10 @@ export async function evaluar(opts: OpcionesEval = {}): Promise<Resultado> {
         if (opts.db) {
           try {
             reportes = await leerReportesRecientes(opts.db, z.id);
-          } catch (e: any) {
-            avisos.push(`Reportes ciudadanos no disponibles para ${z.id}: ${e?.message ?? e}`);
+          } catch {
+            if (!avisos.some((a) => a.startsWith('Reportes ciudadanos no disponibles'))) {
+              avisos.push('Reportes ciudadanos no disponibles. Se usa el estado base del canal.');
+            }
           }
         }
         return horas.map((t) => obstruccionDesdeReportes(reportes, z.id, t, z.obstruccion_base));

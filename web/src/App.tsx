@@ -18,12 +18,28 @@ import { EstadoInicial } from './components/EstadoInicial';
 import { SeccionColapsable } from './components/SeccionColapsable';
 import { Definicion } from './components/Definicion';
 import { ModoPresentacion } from './components/ModoPresentacion';
+import { Pildoras } from './components/Pildoras';
 import {
   getZonas, getRiesgo, getEscenarios, simular,
   COLOR_BANDA, copCorto, type GeoResp, type DetalleZona,
 } from './lib/api';
 import { DEFINICIONES } from './lib/lectura';
 import { T, type Idioma } from './i18n';
+
+const CORTO_ESCENARIO: Record<string, string> = {
+  aguacero_marea_alta: 'PLEA',
+  aguacero_marea_baja: 'BAJA',
+  mar_de_leva_feb2026: 'LEVA',
+  seco: 'SECO',
+};
+const LARGO_ESCENARIO: Record<string, string> = {
+  aguacero_marea_alta: 'aguacero + pleamar',
+  aguacero_marea_baja: 'aguacero + bajamar',
+  mar_de_leva_feb2026: 'mar de leva',
+  seco: 'día seco',
+};
+const cortoEscenario = (id: string) => CORTO_ESCENARIO[id] ?? id.slice(0, 4).toUpperCase();
+const largoEscenario = (id: string, nombre: string) => LARGO_ESCENARIO[id] ?? nombre;
 
 const Esqueleto = ({ n = 4, alto = 10 }: { n?: number; alto?: number }) => (
   <div>
@@ -102,61 +118,78 @@ export default function App() {
 
   return (
     <div className="layout">
-      <div className="capa-mapa">
-        <MapaRiesgo datos={geo} seleccion={sel} onSeleccion={setSel} tema={tema} />
-        {meta?.simulado && (
-          <div className="sello-escenario" role="status">{t.selloEscenario}</div>
-        )}
-      </div>
-
       {/* ─── BARRA SUPERIOR ─── */}
-      {/* Posicionamiento en tokens.css, NO inline: el inline le ganaría a la
-          media query de móvil y la barra volvería a tapar el mapa. */}
-      <header className="barra-sup">
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--esp-4)' }}>
-          <h1 style={{ fontSize: 'var(--texto-xl)', fontWeight: 800, letterSpacing: '-0.03em', margin: 0 }}>MAREA</h1>
-          <span className="rotulo" style={{ maxWidth: 210, lineHeight: 1.3 }}>{t.subtitulo}</span>
+      {/* En el flujo, no absolute: si se parte en dos filas el HUD
+          no tiene que adivinar un top en píxeles. */}
+      <header className="barra-sup" role="banner">
+        <div className="barra-marca">
+          <span className="barra-marca-glifo" aria-hidden>M</span>
+          <div className="barra-marca-txt">
+            <h1>MAREA</h1>
+            <small>{t.marcaSub}</small>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 'var(--esp-3)', alignItems: 'center', flexWrap: 'wrap', marginLeft: 'auto' }}>
-          <span className="badge badge-sin-calibrar">{t.sinCalibrar}</span>
-          {meta && (
-            <span className={`badge ${meta.simulado ? 'badge-simulado' : 'badge-vivo'}`}>
-              {meta.simulado ? t.simuladoLargo : t.vivo}
-            </span>
-          )}
-          {meta?.degradado && <span className="badge badge-simulado latido">{t.degradado}</span>}
-          {recalc && <span className="badge badge-vivo latido">{t.recalculando}</span>}
+        <div className="barra-estado">
+          <span className="rotulo">{t.sinCalibrar}</span>
+          <span className={`barra-estado-nombre ${meta?.simulado ? 'es-simulado' : ''} ${recalc ? 'latido' : ''}`}>
+            {meta?.degradado ? t.degradado : (meta?.simulado ? t.simuladoLargo : t.vivo)}
+          </span>
+        </div>
 
-          <select value={escenario} aria-label={t.enVivo} onChange={(e) => setEscenario(e.target.value)}
-            style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)', letterSpacing: '0.04em' }}>
-            <option value="">{t.enVivo}</option>
-            {escenarios.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}
-          </select>
+        <div className="barra-campo">
+          <Pildoras
+            ariaLabel={t.escenario}
+            valor={escenario}
+            onCambio={setEscenario}
+            opciones={[
+              { id: '', corto: t.vivoCorto, largo: t.enVivoLargo },
+              ...escenarios.map((e) => ({
+                id: e.id as string,
+                corto: cortoEscenario(e.id),
+                largo: largoEscenario(e.id, e.nombre),
+              })),
+            ]}
+          />
+        </div>
 
-          <select value={temporada} aria-label={t.tempAlta} onChange={(e) => setTemporada(e.target.value as any)}
-            style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)', letterSpacing: '0.04em' }}>
-            <option value="alta">{t.tempAlta}</option>
-            <option value="media">{t.tempMedia}</option>
-            <option value="baja">{t.tempBaja}</option>
-          </select>
-
-          <button onClick={() => setIdioma(idioma === 'es' ? 'en' : 'es')}
-            style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)', letterSpacing: '0.08em' }}>
-            {idioma === 'es' ? 'EN' : 'ES'}
-          </button>
-
-          {/* Modo día / noche — un puente de barco hace exactamente esto. */}
-          <button onClick={() => setTema(tema === 'noche' ? 'dia' : 'noche')}
-            aria-label={tema === 'noche' ? t.modoDia : t.modoNoche}
-            style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)', letterSpacing: '0.08em' }}>
-            {tema === 'noche' ? '\u25D1 ' + t.dia : '\u25D0 ' + t.noche}
-          </button>
-
-          <button
-            onClick={() => setModoPitch(true)}
-            aria-label={t.modoPitch}
-            style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)', letterSpacing: '0.08em', color: 'var(--acento)' }}>
+        <div className="barra-acciones">
+          <Pildoras
+            ariaLabel={t.tempAlta}
+            valor={temporada}
+            onCambio={(id) => setTemporada(id as 'alta' | 'media' | 'baja')}
+            opciones={[
+              { id: 'alta', corto: t.tempAltaCorto, largo: t.tempAlta },
+              { id: 'media', corto: t.tempMediaCorto, largo: t.tempMedia },
+              { id: 'baja', corto: t.tempBajaCorto, largo: t.tempBaja },
+            ]}
+          />
+          <Pildoras
+            compacto
+            ariaLabel="idioma"
+            valor={idioma}
+            onCambio={(id) => setIdioma(id as Idioma)}
+            opciones={[
+              { id: 'es', corto: 'ES', largo: 'Español' },
+              { id: 'en', corto: 'EN', largo: 'English' },
+            ]}
+          />
+          <Pildoras
+            compacto
+            ariaLabel={t.modoNoche}
+            valor={tema}
+            onCambio={(id) => setTema(id as 'noche' | 'dia')}
+            icono={(id) => id === 'dia' ? (
+              <svg viewBox="0 0 12 12" aria-hidden><circle cx="6" cy="6" r="2.2" /><path d="M6 1v1.4M6 9.6V11M1 6h1.4M9.6 6H11M2.4 2.4l1 1M8.6 8.6l1 1M2.4 9.6l1-1M8.6 3.4l1-1" /></svg>
+            ) : (
+              <svg viewBox="0 0 12 12" aria-hidden><path d="M8.2 1.8A4.4 4.4 0 1 0 10.2 8 3.4 3.4 0 0 1 8.2 1.8z" /></svg>
+            )}
+            opciones={[
+              { id: 'noche', corto: '', largo: t.modoNoche },
+              { id: 'dia', corto: '', largo: t.modoDia },
+            ]}
+          />
+          <button type="button" className="barra-pitch" onClick={() => setModoPitch(true)} aria-label={t.modoPitch}>
             {t.pitch}
           </button>
         </div>
@@ -168,21 +201,34 @@ export default function App() {
         </div>
       )}
 
-      {meta?.avisos?.length ? (
-        <div className="simulado" style={{
-          position: 'absolute', top: meta.simulado ? 96 : 54, left: '50%', transform: 'translateX(-50%)', zIndex: 13,
-          border: '1px solid var(--alerta)', background: 'var(--profundo)', padding: 'var(--esp-2) var(--esp-5)',
-          maxWidth: 'min(560px, 92vw)',
-        }}>
-          <span className="rotulo" style={{ color: 'var(--alerta)', textTransform: 'none', letterSpacing: '0.04em' }}>
-            {meta.avisos.join(' · ')}
-          </span>
-        </div>
-      ) : null}
+      <div className="escena">
+      <div className="capa-mapa">
+        <MapaRiesgo datos={geo} seleccion={sel} onSeleccion={setSel} tema={tema} />
+        {meta?.simulado && (
+          <div className="sello-escenario" role="status">{t.selloEscenario}</div>
+        )}
+      </div>
+
+      {(() => {
+        const avisos = (meta?.avisos ?? []).filter((a) => !/SQLITE|D1_ERROR/i.test(a));
+        const unicos: string[] = [];
+        for (const a of avisos) {
+          const limpio = /reportes ciudadanos/i.test(a)
+            ? 'Reportes ciudadanos no disponibles. Se usa el estado base del canal.'
+            : a;
+          if (!unicos.includes(limpio)) unicos.push(limpio);
+        }
+        return unicos.length ? (
+          <div className="aviso-api simulado">
+            <span className="rotulo" style={{ color: 'var(--alerta)', textTransform: 'none', letterSpacing: '0.04em' }}>
+              {unicos.join(' · ')}
+            </span>
+          </div>
+        ) : null;
+      })()}
 
       {error && (
-        <div style={{ position: 'absolute', top: 54, left: '50%', transform: 'translateX(-50%)', zIndex: 13,
-          border: '1px solid var(--critico)', background: 'var(--profundo)', padding: 'var(--esp-2) var(--esp-5)' }}>
+        <div className="aviso-api" style={{ borderColor: 'var(--critico)' }}>
           <span className="rotulo" style={{ color: 'var(--critico)', textTransform: 'none' }}>API: {error}</span>
         </div>
       )}
@@ -202,15 +248,36 @@ export default function App() {
       {/* ─── HUD IZQUIERDA · ranking de zonas ─── */}
       <aside className="hud hud-izq">
         {todoVerde && (
-          <EstadoInicial
-            idioma={idioma}
-            simulado={!!meta?.simulado}
-            onProbar={() => setEscenario('aguacero_marea_alta')}
-          />
+          <SeccionColapsable
+            id="hoy-verde"
+            titulo={t.hoyVerde}
+            defaultAbierta
+            tituloColor="var(--seco)"
+            resumen={t.verdeResumen}
+          >
+            <EstadoInicial
+              idioma={idioma}
+              simulado={!!meta?.simulado}
+              onProbar={() => setEscenario('aguacero_marea_alta')}
+            />
+          </SeccionColapsable>
         )}
 
-        <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
-          <div className="rotulo" style={{ color: 'var(--acento)', marginBottom: 'var(--esp-4)' }}>{t.zonas}</div>
+        <SeccionColapsable
+          id="zonas"
+          titulo={t.zonas}
+          defaultAbierta
+          className="milimetrado"
+          resumen={(() => {
+            const z = geo?.features.find((f) => f.properties.id === sel)?.properties;
+            if (!z) return geo ? `${geo.features.length}` : undefined;
+            return `${z.nombre} · ${Math.round(z.iri)}/100 · ${t.bandaDe[z.banda]}`;
+          })()}
+        >
+          <div className="prosa-nota" style={{ marginBottom: 'var(--esp-5)' }}>
+            <Definicion termino={t.estado} titulo={t.estado}>{t.leyendaBandas}</Definicion>
+            {' · '}{t.bandaDe.verde} · {t.bandaDe.amarillo} · {t.bandaDe.naranja} · {t.bandaDe.rojo}
+          </div>
 
           {!geo && !error && <Esqueleto n={6} alto={30} />}
 
@@ -225,12 +292,12 @@ export default function App() {
               <button key={p.id} onClick={() => setSel(p.id)} className="fila-zona"
                 style={{
                   display: 'block', width: '100%', textAlign: 'left',
-                  paddingBlock: 'var(--esp-4)', marginBottom: 'var(--esp-3)',
+                  paddingBlock: 'var(--esp-5)', marginBottom: 'var(--esp-4)',
                   background: activo ? 'var(--abismo)' : 'transparent',
                   borderColor: activo ? COLOR_BANDA[p.banda] : 'var(--sonda)',
                 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 'var(--esp-3)' }}>
-                  <span style={{ fontSize: 'var(--texto-sm)', fontWeight: 600, fontFamily: 'var(--display)', color: 'var(--papel)' }}>
+                  <span style={{ fontSize: 'var(--texto-md)', fontWeight: 600, fontFamily: 'var(--display)', color: 'var(--papel)' }}>
                     {p.nombre}
                     {p.es_turistica && <span style={{ color: 'var(--acento)', fontSize: 'var(--texto-xs)' }}> ◆</span>}
                   </span>
@@ -242,9 +309,9 @@ export default function App() {
                     <span className="rotulo" style={{ fontSize: 'var(--texto-xs)' }}>/100</span>
                   </span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'var(--esp-2)', gap: 'var(--esp-4)' }}>
-                  <span className="rotulo" style={{ color: COLOR_BANDA[p.banda], textTransform: 'none', letterSpacing: '0.04em' }}>
-                    {t.bandaDe[p.banda]}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'var(--esp-3)', gap: 'var(--esp-4)' }}>
+                  <span className="prosa-nota" style={{ color: COLOR_BANDA[p.banda] }}>
+                    {t.estado}: {t.bandaDe[p.banda]}
                   </span>
                   <Sparkline valores={p.serie_iri ?? []} color={COLOR_BANDA[p.banda]} />
                   <span className="num rotulo" style={{ fontSize: 'var(--texto-xs)', color: p.ver_cop > 0 ? 'var(--alerta)' : 'var(--papel-fant)' }}>
@@ -258,13 +325,13 @@ export default function App() {
           <div className="rotulo" style={{ fontSize: 'var(--texto-xs)', marginTop: 'var(--esp-3)', textTransform: 'none', lineHeight: 1.5 }}>
             ◆ {t.turistica} · {t.osmNota}
           </div>
-        </div>
+        </SeccionColapsable>
       </aside>
 
       {/* ─── HUD DERECHA · detalle de zona ─── */}
       <aside className="hud hud-der">
         {cargandoDetalle && !detalle && (
-          <div className="panel" style={{ padding: 'var(--esp-5)' }}>
+          <div className="panel" style={{ padding: 'var(--esp-6)' }}>
             <div className="rotulo" style={{ color: 'var(--acento)', marginBottom: 'var(--esp-4)' }}>{t.cargando}</div>
             <div className="esqueleto" style={{ height: 200, marginBottom: 'var(--esp-4)' }} />
             <Esqueleto n={4} />
@@ -272,7 +339,7 @@ export default function App() {
         )}
 
         {!cargandoDetalle && !detalle && (
-          <div className="panel" style={{ padding: 'var(--esp-5)' }}>
+          <div className="panel" style={{ padding: 'var(--esp-6)' }}>
             <div className="rotulo" style={{ color: 'var(--alerta)' }}>{t.sinDetalle}</div>
             <div className="rotulo" style={{ marginTop: 'var(--esp-3)', textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5 }}>
               {t.sinDetalleAyuda}
@@ -282,10 +349,10 @@ export default function App() {
 
         {detalle && (
           <>
-            <div className={`panel ${detalle.simulado ? 'simulado' : ''}`} style={{ padding: 'var(--esp-5)' }}>
+            <div className={`panel ${detalle.simulado ? 'simulado' : ''}`} style={{ padding: 'var(--esp-6)' }}>
               <LecturaZona detalle={detalle} idioma={idioma} />
 
-              <div style={{ marginTop: 'var(--esp-5)', borderTop: 'var(--linea)', paddingTop: 'var(--esp-4)' }}>
+              <div style={{ marginTop: 'var(--esp-6)', borderTop: 'var(--linea)', paddingTop: 'var(--esp-5)' }}>
                 <ContadorVER
                   valor={detalle.ver_cop}
                   horas={detalle.horas_interrupcion + 2}
@@ -352,6 +419,7 @@ export default function App() {
           </>
         )}
       </aside>
+      </div>
 
       {modoPitch && (
         <ModoPresentacion

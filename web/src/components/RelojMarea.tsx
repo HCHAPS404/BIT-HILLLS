@@ -70,7 +70,7 @@ export function RelojMarea({ serie, ventanaCritica, pico, simulado, rotuloVentan
 
   return (
     <div style={{ position: 'relative' }}>
-      <svg viewBox="0 0 300 300" width="100%" style={{ display: 'block', maxWidth: 340, margin: '0 auto' }}>
+      <svg viewBox="0 0 300 300" width="100%" style={{ display: 'block', maxWidth: '100%', margin: '0 auto' }}>
         <defs>
           <radialGradient id="fondoDial">
             <stop offset="0%" stopColor="var(--profundo)" />

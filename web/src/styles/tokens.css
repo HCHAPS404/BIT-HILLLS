@@ -108,7 +108,7 @@
   --display: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
 
   --texto-xs: 11px;
-  --texto-sm: 12px;
+  --texto-sm: 13px;
   --texto-md: 14px;
   --texto-lg: 16px;
   --texto-xl: 20px;
@@ -120,6 +120,9 @@
   --esp-4: 8px;
   --esp-5: 12px;
   --esp-6: 16px;
+  /* Aire contra el borde de la ventana. Distinto de --esp-*:
+     eso es ritmo interno; esto es el margen de la placa. */
+  --gutter: 20px;
 
   /* Radios tomados del sistema de la Plataforma Psicológica. */
   --r-sm: 6px;
@@ -149,10 +152,28 @@ html, body, #root {
 .rotulo {
   font-family: var(--mono);
   font-size: var(--texto-xs);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--papel-fant);
   font-weight: 500;
+}
+
+/* Cuerpo dentro de un panel. El rótulo etiqueta; esto se lee. */
+.prosa {
+  font-family: var(--display);
+  font-size: var(--texto-md);
+  line-height: 1.55;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--papel);
+}
+.prosa-nota {
+  font-family: var(--display);
+  font-size: var(--texto-sm);
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--papel-tenue);
 }
 
 /* Papel milimetrado: retícula sutil en paneles de datos */
@@ -281,7 +302,7 @@ button:focus-visible, select:focus-visible {
 
 /* Las filas del ranking son superficies, no píldoras: con radio de píldora
    una lista densa se vuelve ilegible. Radio suave y ya. */
-.fila-zona { border-radius: var(--r); padding-inline: var(--esp-4); }
+.fila-zona { border-radius: var(--r); padding-inline: var(--esp-5); }
 
 input[type="range"] { accent-color: var(--acento); background: transparent; border: none; }
 
@@ -298,24 +319,24 @@ input[type="range"] { accent-color: var(--acento); background: transparent; bord
    pasa a scroll vertical normal — mapa arriba, paneles abajo.
    El jurado puede abrir esto en el celular; no es hipotético. */
 
-.layout { position: fixed; inset: 0; overflow: hidden; }
+.layout {
+  position: fixed; inset: 0; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.escena { position: relative; flex: 1; min-height: 0; }
 .capa-mapa { position: absolute; inset: 0; overflow: hidden; }
 
 .hud {
-  position: absolute; top: 66px; bottom: 12px; z-index: 10;
-  display: flex; flex-direction: column; gap: var(--esp-5);
+  position: absolute; top: var(--gutter); bottom: var(--gutter); z-index: 10;
+  display: flex; flex-direction: column; gap: var(--esp-6);
   overflow-y: auto; overscroll-behavior: contain;
 }
-.hud-izq { left: 12px; width: 272px; }
-.hud-der { right: 12px; width: 316px; }
-
-/* La banda de escenario empuja el HUD hacia abajo. :has evita un
-   segundo layout mode y no toca el mapa. */
-.layout:has(.aviso-escenario) .hud { top: 102px; }
+.hud-izq { left: var(--gutter); width: 320px; bottom: 52px; }
+.hud-der { right: var(--gutter); width: 380px; }
 
 .aviso-escenario {
-  position: absolute; top: 58px; left: 0; right: 0; z-index: 12;
-  padding: var(--esp-2) var(--esp-5);
+  flex-shrink: 0;
+  padding: var(--esp-3) var(--gutter);
   background-color: var(--profundo);
   border-bottom: 1px solid var(--vigila);
   color: var(--vigila);
@@ -326,8 +347,17 @@ input[type="range"] { accent-color: var(--acento); background: transparent; bord
   text-align: center;
 }
 
+.aviso-api {
+  position: absolute; top: var(--gutter); left: 50%; transform: translateX(-50%);
+  z-index: 13;
+  border: 1px solid var(--alerta);
+  background-color: var(--profundo);
+  padding: var(--esp-2) var(--esp-5);
+  max-width: min(560px, 92vw);
+}
+
 .sello-escenario {
-  position: absolute; top: 78px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: var(--gutter); left: 50%; transform: translateX(-50%);
   z-index: 5; pointer-events: none;
   font-family: var(--mono); font-size: var(--texto-xs);
   letter-spacing: 0.08em; text-transform: uppercase;
@@ -336,26 +366,25 @@ input[type="range"] { accent-color: var(--acento); background: transparent; bord
   padding: var(--esp-2) var(--esp-4);
   border: 1px solid var(--vigila);
 }
-.layout:has(.aviso-escenario) .sello-escenario { top: 114px; }
 
 .frase-estado {
-  font-size: var(--texto-lg);
+  font-size: var(--texto-xl);
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   line-height: 1.3;
-  margin: var(--esp-2) 0 0;
+  margin: var(--esp-3) 0 0;
 }
 .frase-detalle {
-  font-size: var(--texto-sm);
-  line-height: 1.5;
-  margin: var(--esp-2) 0 0;
+  font-size: var(--texto-md);
+  line-height: 1.55;
+  margin: var(--esp-4) 0 0;
   color: var(--papel);
 }
 .accion-recomendada {
-  font-size: var(--texto-sm);
-  line-height: 1.45;
-  margin-top: var(--esp-4);
-  padding: var(--esp-4);
+  font-size: var(--texto-md);
+  line-height: 1.5;
+  margin-top: var(--esp-6);
+  padding: var(--esp-5) var(--esp-6);
   background-color: var(--abismo);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--papel) 9%, transparent);
   border-radius: var(--r);
@@ -476,11 +505,201 @@ button.termino:active { transform: none; }
    Ojo: esto vive en CSS y NO en estilo inline, porque el inline le ganaría
    a la media query de móvil y la barra seguiría tapando el mapa. */
 .barra-sup {
-  position: absolute; top: 0; left: 0; right: 0; z-index: 12;
-  display: flex; align-items: center; gap: var(--esp-5); flex-wrap: wrap;
-  padding: var(--esp-4) var(--esp-5);
-  background-color: var(--abismo);
+  position: relative; flex-shrink: 0; z-index: 12;
+  display: flex; align-items: stretch;
+  height: 56px;
+  padding: 0 var(--gutter);
+  gap: 0;
+  flex-wrap: nowrap;
+  background-color: var(--profundo);
   border-bottom: var(--linea);
+}
+
+.barra-marca {
+  display: flex; align-items: center; gap: var(--esp-4);
+  padding-right: var(--esp-6);
+  border-right: var(--linea);
+  flex-shrink: 0;
+}
+.barra-marca-glifo {
+  width: 30px; height: 30px; flex-shrink: 0;
+  border-radius: var(--r);
+  background-color: var(--papel);
+  color: var(--abismo);
+  display: grid; place-items: center;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: var(--texto-sm);
+  letter-spacing: -0.04em;
+}
+.barra-marca-txt h1 {
+  font-size: var(--texto-md);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin: 0;
+}
+.barra-marca-txt small {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--texto-xs);
+  color: var(--papel-fant);
+  line-height: 1.25;
+  max-width: 200px;
+}
+
+.barra-estado {
+  display: flex; flex-direction: column; justify-content: center;
+  gap: 2px;
+  padding: 0 var(--esp-6);
+  border-right: var(--linea);
+  min-width: 168px;
+  flex-shrink: 0;
+}
+.barra-estado-nombre {
+  font-size: var(--texto-sm);
+  font-weight: 650;
+  line-height: 1.2;
+  color: var(--acento);
+}
+.barra-estado-nombre.es-simulado { color: var(--vigila); }
+
+.barra-campo {
+  flex: 1 1 auto;
+  display: flex; align-items: center;
+  min-width: 0;
+  max-width: none;
+  padding: 0 var(--esp-5);
+  overflow: hidden;
+}
+.barra-campo .ir-tabs {
+  justify-content: flex-start;
+  max-width: 100%;
+}
+.barra-acciones {
+  display: flex; align-items: center; gap: var(--esp-3);
+  margin-left: auto;
+  padding-left: var(--esp-5);
+  flex-shrink: 0;
+}
+.barra-pitch {
+  height: 32px;
+  font-size: var(--texto-xs);
+  padding-inline: var(--esp-5);
+  font-weight: 700;
+  background-color: var(--papel);
+  color: var(--abismo);
+}
+.barra-pitch:hover {
+  color: var(--abismo);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--acento) 55%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--papel) 10%, transparent);
+}
+
+/* ─── PÍLDORAS .ir-tabs ───────────────────────────────────
+   Sistema de la Plataforma (barra de intervenciones), mapeado
+   a tokens de MAREA. Sustituye <select> nativos. */
+.ir-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 3px;
+  width: auto;
+  margin: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  border-radius: var(--r-pill);
+  border: var(--linea);
+  background-color: var(--abismo);
+}
+.ir-tabs::-webkit-scrollbar { display: none; }
+.ir-tabs button {
+  flex: 0 0 auto;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border: none;
+  border-radius: var(--r-pill);
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  color: var(--papel-tenue);
+  background: none;
+  background-color: transparent;
+  box-shadow: none;
+  line-height: 1;
+  gap: 5px;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    padding 350ms cubic-bezier(.4, 0, .2, 1),
+    background-color 150ms ease,
+    color 150ms ease;
+}
+.ir-tabs button:hover {
+  box-shadow: none;
+  color: var(--papel);
+}
+.ir-tabs button:active { transform: none; }
+.ir-tabs button:not(.active):hover {
+  background-color: color-mix(in srgb, var(--acento) 8%, var(--abismo));
+  color: var(--papel);
+}
+.ir-tabs button.active,
+.ir-tabs button[aria-selected="true"] {
+  background-color: var(--profundo);
+  color: var(--papel);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--abismo) 55%, transparent);
+}
+.ir-tab-short {
+  flex: 0 0 auto;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+}
+.ir-tab-full {
+  display: inline-block;
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  white-space: nowrap;
+  transition:
+    max-width 350ms cubic-bezier(.4, 0, .2, 1),
+    opacity 250ms ease 60ms;
+}
+.ir-tabs button:not(.active):hover .ir-tab-full,
+.ir-tabs button.active .ir-tab-full,
+.ir-tabs button[aria-selected="true"] .ir-tab-full {
+  max-width: 360px;
+  opacity: 1;
+}
+.ir-tabs button.active .ir-tab-short,
+.ir-tabs button[aria-selected="true"] .ir-tab-short {
+  font-weight: 800;
+}
+.ir-tabs svg {
+  width: 12px; height: 12px; flex-shrink: 0;
+  stroke: currentColor; fill: none; stroke-width: 1.8;
+}
+.ir-tabs-compacto button { padding: 0 9px; min-width: 30px; }
+
+@media (max-width: 560px) {
+  .ir-tabs { width: 100%; justify-content: flex-start; }
+}
+@media (hover: none) {
+  .ir-tabs .ir-tab-short { display: none; }
+  .ir-tabs .ir-tab-full {
+    max-width: none;
+    opacity: 1;
+    display: inline;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ir-tabs button, .ir-tabs .ir-tab-full { transition: none; }
 }
 
 /**
@@ -506,8 +725,8 @@ button, select, input, .fila-zona {
 
 /* ─── CARTUCHO (bloque de título de carta náutica) ─── */
 .cartucho {
-  position: absolute; left: 12px; bottom: 12px; z-index: 11;
-  width: 224px; padding: 13px 14px;
+  position: absolute; left: var(--gutter); bottom: var(--gutter); z-index: 11;
+  width: 320px; padding: var(--esp-6);
   border-radius: var(--r-lg);
   background-color: color-mix(in srgb, var(--profundo) 94%, transparent);
   border: none;
@@ -524,13 +743,13 @@ button, select, input, .fila-zona {
 }
 .cartucho-x:hover { color: var(--critico); }
 .cartucho-cerrado {
-  position: absolute; left: 12px; bottom: 12px; z-index: 11;
-  padding: 6px 12px; background-color: var(--profundo); border: var(--linea);
+  position: absolute; left: var(--gutter); bottom: var(--gutter); z-index: 11;
+  padding: var(--esp-3) var(--esp-5); background-color: var(--profundo); border: var(--linea);
   border-radius: var(--r-pill);
 }
 
 @media (max-width: 900px) {
-  .cartucho, .cartucho-cerrado { position: static; width: auto; margin: 9px 9px 0; }
+  .cartucho, .cartucho-cerrado { position: static; width: auto; margin: var(--esp-5) var(--gutter) 0; }
 }
 
 @media (max-width: 900px) {
@@ -538,27 +757,32 @@ button, select, input, .fila-zona {
   ::-webkit-scrollbar { width: 0; height: 0; }
 
   .layout { position: static; inset: auto; overflow: visible; min-height: 100%; }
+  .escena { display: contents; }
   .capa-mapa { position: relative; inset: auto; height: 46vh; min-height: 260px; }
   .hud {
     position: static; width: auto; max-height: none;
-    overflow: visible; margin: 9px 9px 0;
+    overflow: visible; margin: var(--esp-5) var(--gutter) 0;
   }
-  .hud-izq, .hud-der { left: auto; right: auto; width: auto; }
-  .hud:last-child { margin-bottom: 16px; }
+  .hud-izq, .hud-der { left: auto; right: auto; width: auto; bottom: auto; }
+  .hud:last-child { margin-bottom: var(--esp-6); }
 
-  /* En escritorio la barra flota sobre el mapa. En móvil el mapa solo mide
-     ~374 px de alto y la barra le comía la mitad, así que entra en el flujo. */
   .barra-sup {
     position: sticky; top: 0;
-    background-color: var(--abismo);
-    border-bottom: var(--linea);
+    height: auto;
+    flex-wrap: wrap;
+    row-gap: var(--esp-3);
+    padding: var(--esp-4) var(--gutter);
+    background-color: var(--profundo);
   }
-  .layout { display: flex; flex-direction: column; }
-  .barra-sup { order: -1; }
+  .barra-marca { border-right: none; padding-right: var(--esp-4); }
+  .barra-marca-txt small { display: none; }
+  .barra-estado { min-width: 0; padding: 0 var(--esp-4); }
+  .barra-campo { max-width: none; flex: 1 1 100%; padding: var(--esp-2) 0; border-top: var(--linea); }
+  .barra-acciones { margin-left: 0; padding: var(--esp-2) 0 0; width: 100%; justify-content: flex-end; }
 
-  .aviso-escenario { position: static; text-align: left; }
-  .layout:has(.aviso-escenario) .hud { top: auto; }
-  .sello-escenario, .layout:has(.aviso-escenario) .sello-escenario { top: 8px; }
+  .aviso-escenario { text-align: left; }
+  .aviso-api { position: static; transform: none; margin: var(--esp-4) var(--gutter) 0; max-width: none; }
+  .sello-escenario { top: 8px; }
   .definicion-panel { width: min(248px, calc(100vw - 40px)); }
 }
 

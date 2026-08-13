@@ -106,16 +106,23 @@ duplicado a propósito, no importado.
 Todos los gaps de integración conocidos están cerrados. Lo que queda es
 trabajo de fondo, no bloqueante:
 
-1. Rotar el `CLOUDFLARE_API_TOKEN` si en algún momento se compartió en texto plano fuera de GitHub Secrets.
-2. **Fontumi real: EN STANDBY, decisión explícita del equipo (2026-08-13).**
-   No es un bloqueo técnico — `ConsoleNotifier` cubre el demo/pitch sin
-   riesgo. Cuando se retome: el token que compartieron era login de
-   dashboard (usuario/password), no API token — no se usó, se descartó.
-   Además, los endpoints en `FontumiNotifier` (`api.fontumi.co/v1/...`)
-   son adivinados y probablemente estén mal — el dashboard real vive en
-   `one.fontumi.ai/v2/...`, dominio y versión distintos. Antes de
-   reconectar: conseguir el API token real desde Settings/API del
-   dashboard (no el login) y confirmar los endpoints/auth reales.
+1. Rotar el `CLOUDFLARE_API_TOKEN` si en algún momento se compartió en texto plano fuera de GitHub Secrets. Mismo cuidado con el Private Integration Token de Fontumi/GHL (`pit-...`) — pasó por chat, rotarlo cuando se retome.
+2. **Fontumi real: investigado a fondo el 2026-08-13, EN STANDBY por causa externa (no de código).**
+   Fontumi corre sobre **GoHighLevel** (API real: `services.leadconnectorhq.com`,
+   no `api.fontumi.co/v1` como estaba adivinado en el código — eso sigue
+   sin corregirse en `FontumiNotifier`, es lo primero que hay que
+   arreglar cuando se retome). Con un Private Integration Token con
+   scopes `contacts.readonly/write` y `conversations/message.readonly/write`,
+   **se probó el flujo completo contra la API real:** crear contacto por
+   teléfono (`POST /contacts/`, 201) → enviar mensaje
+   (`POST /conversations/messages`, type `WhatsApp`, 201). La API acepta
+   el mensaje, pero el envío real **falla** con
+   `error: "locale.whatsapp.errors.subscriptionNotActiveLocation"` — el
+   canal de WhatsApp Business no está activado/suscrito para esa cuenta.
+   Eso se resuelve en Settings → WhatsApp del dashboard de Fontumi
+   (conectar y verificar un número, típicamente vía Meta — puede tardar
+   horas o días, no es instantáneo). No es algo que el código pueda
+   arreglar. `ConsoleNotifier` sigue cubriendo el demo/pitch sin riesgo.
 3. Calibración del modelo IRI contra datos de OAGRD/ERA5 (ver README, sección "Honestidad del modelo").
 4. Opcional: guardar la foto del reporte en R2 para historial visual.
 5. `.pages.dev` de producción muestra un chunk JS de ~1 MB (aviso de Vite en el build) — no bloquea nada, pero si hay tiempo, `manualChunks` ayudaría a la carga inicial.

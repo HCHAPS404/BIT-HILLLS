@@ -19,10 +19,10 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import type { GeoResp } from '../lib/api';
 import { registrarTramas, EXPR_TRAMA, EXPR_COLOR } from '../lib/tramas';
 
-/** El basemap sigue al modo: carbón de noche, papel de día. */
+/** Noche: carbón. Día: Voyager (parques, agua y vías con color, no gris). */
 const ESTILOS = {
   noche: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-  dia: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+  dia: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
 } as const;
 
 interface Props {
@@ -107,7 +107,7 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
         id: 'velo', type: 'fill', source: 'velo',
         paint: {
           'fill-color': css.getPropertyValue('--abismo').trim() || '#131315',
-          'fill-opacity': temaRef.current === 'dia' ? 0.40 : 0.30,
+          'fill-opacity': temaRef.current === 'dia' ? 0.06 : 0.16,
         },
       });
 
@@ -118,7 +118,7 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
         id: 'zonas-base', type: 'fill', source: 'zonas',
         paint: {
           'fill-color': EXPR_COLOR,
-          'fill-opacity': ['case', ['boolean', ['feature-state', 'sel'], false], 0.34, 0.18],
+          'fill-opacity': ['case', ['boolean', ['feature-state', 'sel'], false], 0.52, 0.36],
         },
       });
 

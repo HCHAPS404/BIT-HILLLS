@@ -165,15 +165,17 @@ export default function App() {
             ]}
           />
           <Pildoras
+            compacto
             ariaLabel="idioma"
             valor={idioma}
             onCambio={(id) => setIdioma(id as Idioma)}
             opciones={[
-              { id: 'es', corto: 'ES', largo: 'español' },
-              { id: 'en', corto: 'EN', largo: 'english' },
+              { id: 'es', corto: 'ES', largo: 'Español' },
+              { id: 'en', corto: 'EN', largo: 'English' },
             ]}
           />
           <Pildoras
+            compacto
             ariaLabel={t.modoNoche}
             valor={tema}
             onCambio={(id) => setTema(id as 'noche' | 'dia')}
@@ -183,8 +185,8 @@ export default function App() {
               <svg viewBox="0 0 12 12" aria-hidden><path d="M8.2 1.8A4.4 4.4 0 1 0 10.2 8 3.4 3.4 0 0 1 8.2 1.8z" /></svg>
             )}
             opciones={[
-              { id: 'noche', corto: t.noche, largo: 'puente' },
-              { id: 'dia', corto: t.dia, largo: 'carta' },
+              { id: 'noche', corto: '', largo: t.modoNoche },
+              { id: 'dia', corto: '', largo: t.modoDia },
             ]}
           />
           <button type="button" className="barra-pitch" onClick={() => setModoPitch(true)} aria-label={t.modoPitch}>

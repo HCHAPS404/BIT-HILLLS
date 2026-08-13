@@ -685,6 +685,7 @@ button.termino:active { transform: none; }
   width: 12px; height: 12px; flex-shrink: 0;
   stroke: currentColor; fill: none; stroke-width: 1.8;
 }
+.ir-tabs-compacto button { padding: 0 9px; min-width: 30px; }
 
 @media (max-width: 560px) {
   .ir-tabs { width: 100%; justify-content: flex-start; }

@@ -17,11 +17,13 @@ interface Props {
   opciones: OpcionPildora[];
   ariaLabel: string;
   icono?: (id: string) => ReactNode;
+  /** Sin expansión: el corto o el icono bastan (ES/EN, día/noche). */
+  compacto?: boolean;
 }
 
-export function Pildoras({ valor, onCambio, opciones, ariaLabel, icono }: Props) {
+export function Pildoras({ valor, onCambio, opciones, ariaLabel, icono, compacto }: Props) {
   return (
-    <div className="ir-tabs" role="tablist" aria-label={ariaLabel}>
+    <div className={`ir-tabs${compacto ? ' ir-tabs-compacto' : ''}`} role="tablist" aria-label={ariaLabel}>
       {opciones.map((o) => {
         const activo = o.id === valor;
         return (
@@ -35,8 +37,8 @@ export function Pildoras({ valor, onCambio, opciones, ariaLabel, icono }: Props)
             onClick={() => onCambio(o.id)}
           >
             {icono?.(o.id)}
-            <span className="ir-tab-short" aria-hidden="true">{o.corto}</span>
-            <span className="ir-tab-full">&nbsp;{o.largo}</span>
+            {o.corto ? <span className="ir-tab-short" aria-hidden="true">{o.corto}</span> : null}
+            {!compacto && o.largo ? <span className="ir-tab-full">&nbsp;{o.largo}</span> : null}
           </button>
         );
       })}

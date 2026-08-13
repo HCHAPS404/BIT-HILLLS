@@ -32,7 +32,14 @@ const CORTO_ESCENARIO: Record<string, string> = {
   mar_de_leva_feb2026: 'LEVA',
   seco: 'SECO',
 };
+const LARGO_ESCENARIO: Record<string, string> = {
+  aguacero_marea_alta: 'aguacero + pleamar',
+  aguacero_marea_baja: 'aguacero + bajamar',
+  mar_de_leva_feb2026: 'mar de leva',
+  seco: 'día seco',
+};
 const cortoEscenario = (id: string) => CORTO_ESCENARIO[id] ?? id.slice(0, 4).toUpperCase();
+const largoEscenario = (id: string, nombre: string) => LARGO_ESCENARIO[id] ?? nombre;
 
 const Esqueleto = ({ n = 4, alto = 10 }: { n?: number; alto?: number }) => (
   <div>
@@ -136,11 +143,11 @@ export default function App() {
             valor={escenario}
             onCambio={setEscenario}
             opciones={[
-              { id: '', corto: t.vivoCorto, largo: t.enVivo },
+              { id: '', corto: t.vivoCorto, largo: t.enVivoLargo },
               ...escenarios.map((e) => ({
                 id: e.id as string,
                 corto: cortoEscenario(e.id),
-                largo: e.nombre as string,
+                largo: largoEscenario(e.id, e.nombre),
               })),
             ]}
           />

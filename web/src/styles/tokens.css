@@ -570,6 +570,11 @@ button.termino:active { transform: none; }
   min-width: 0;
   max-width: none;
   padding: 0 var(--esp-5);
+  overflow: hidden;
+}
+.barra-campo .ir-tabs {
+  justify-content: flex-start;
+  max-width: 100%;
 }
 .barra-acciones {
   display: flex; align-items: center; gap: var(--esp-3);

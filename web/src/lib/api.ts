@@ -48,8 +48,14 @@ const qs = (o: Record<string, string | undefined>) =>
 export const getZonas = (escenario?: string, temporada?: string) =>
   j<GeoResp>(`${API}/api/zonas?${qs({ escenario, temporada })}`);
 
-export const getRiesgo = (zona: string, escenario?: string, temporada?: string) =>
-  j<DetalleZona>(`${API}/api/riesgo/${zona}?${qs({ escenario, temporada })}`);
+export const getRiesgo = (zona: string, escenario?: string, temporada?: string, overrides?: unknown) =>
+  j<DetalleZona>(`${API}/api/riesgo/${zona}?${qs({
+    escenario,
+    temporada,
+    overrides: overrides && typeof overrides === 'object' && Object.keys(overrides as object).length
+      ? JSON.stringify(overrides)
+      : undefined,
+  })}`);
 
 export const getParams = () =>
   j<{ valores: any; meta: any[]; nota: string }>(`${API}/api/params`);

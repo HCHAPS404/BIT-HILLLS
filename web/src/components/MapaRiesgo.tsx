@@ -18,6 +18,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { GeoResp } from '../lib/api';
 import { registrarTramas, EXPR_TRAMA, EXPR_COLOR } from '../lib/tramas';
+import { pintarBasemapPlano } from '../lib/basemapPlano';
 
 /** Noche: carbón. Día: Voyager (parques, agua y vías con color, no gris). */
 const ESTILOS = {
@@ -36,6 +37,7 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
   const cont = useRef<HTMLDivElement>(null);
   const mapa = useRef<maplibregl.Map | null>(null);
   const listo = useRef(false);
+  const ultimaCamara = useRef<string | null>(null);
   const temaAplicado = useRef(tema);
   // montarCapas se define en un efecto con deps []: sin ref capturaría el
   // tema inicial y el velo conservaría la opacidad del modo anterior.
@@ -92,6 +94,9 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
 
     const construirCapas = () => {
       registrarTramas(m);
+      // Día: Voyager re-tinteado al plano ilustrado (crema / ámbar / cian / lima).
+      // Noche se queda en dark-matter. No emite styledata: no re-entra.
+      if (temaRef.current === 'dia') pintarBasemapPlano(m);
       const css = getComputedStyle(document.documentElement);
 
       /**
@@ -114,7 +119,7 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
         id: 'velo', type: 'fill', source: 'velo',
         paint: {
           'fill-color': css.getPropertyValue('--abismo').trim() || '#131315',
-          'fill-opacity': temaRef.current === 'dia' ? 0.06 : 0.16,
+          'fill-opacity': temaRef.current === 'dia' ? 0.02 : 0.16,
         },
       });
 
@@ -131,11 +136,12 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
 
       // Trama cartográfica: la DENSIDAD del rayado es la severidad.
       // Se lee en gris, se lee impresa y funciona con daltonismo.
+      // Alfa 0.1: las marcas se leen sin tapar el plano.
       m.addLayer({
         id: 'zonas-relleno', type: 'fill', source: 'zonas',
         paint: {
           'fill-pattern': EXPR_TRAMA,
-          'fill-opacity': ['case', ['boolean', ['feature-state', 'sel'], false], 1, 0.82],
+          'fill-opacity': 0.1,
         },
       });
 
@@ -214,6 +220,39 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
     datos.features.forEach((f, i) =>
       m.setFeatureState({ source: 'zonas', id: i }, { sel: f.properties.id === seleccion }),
     );
+  }, [seleccion, datos]);
+
+  // Selección desde la lista (o el mapa): vuelo hasta el polígono.
+  // No se dispara si solo se recargan datos de la misma zona.
+  useEffect(() => {
+    const m = mapa.current;
+    if (!m || !listo.current || !datos || !seleccion) return;
+    if (ultimaCamara.current === seleccion) return;
+    ultimaCamara.current = seleccion;
+
+    const f = datos.features.find((x) => x.properties.id === seleccion);
+    if (!f) return;
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const movil = window.matchMedia('(max-width: 900px)').matches;
+    const padding = movil
+      ? { top: 28, bottom: 28, left: 28, right: 28 }
+      : { top: 48, bottom: 56, left: 360, right: 420 };
+
+    const ring = f.geometry?.coordinates?.[0] as [number, number][] | undefined;
+    m.stop();
+    if (ring && ring.length > 2) {
+      const b = ring.reduce(
+        (acc, [lng, lat]) => acc.extend([lng, lat]),
+        new maplibregl.LngLatBounds(ring[0], ring[0]),
+      );
+      m.fitBounds(b, { padding, maxZoom: 14.6, duration: reduce ? 0 : 1100, essential: true });
+      return;
+    }
+    const c = f.properties.centro;
+    if (!c) return;
+    if (reduce) m.jumpTo({ center: c, zoom: 14 });
+    else m.flyTo({ center: c, zoom: 14, speed: 0.85, curve: 1.35, padding, essential: true });
   }, [seleccion, datos]);
 
   return (

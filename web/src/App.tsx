@@ -67,6 +67,8 @@ export default function App() {
     () => (localStorage.getItem('marea:tema') as 'noche' | 'dia') ?? 'noche',
   );
   const [modoPitch, setModoPitch] = useState(false);
+  const [cartaAbierta, setCartaAbierta] = useState(false);
+  const [zonasAbierta, setZonasAbierta] = useState(true);
   const t = T[idioma];
   const def = DEFINICIONES[idioma];
 
@@ -106,11 +108,16 @@ export default function App() {
   useEffect(() => {
     if (!sel) return;
     setCargandoDetalle(true);
-    getRiesgo(sel, escenario || undefined, temporada)
+    getRiesgo(
+      sel,
+      escenario || undefined,
+      temporada,
+      Object.keys(overrides).length ? overrides : undefined,
+    )
       .then(setDetalle)
       .catch(() => setDetalle(null))
       .finally(() => setCargandoDetalle(false));
-  }, [sel, escenario, temporada]);
+  }, [sel, escenario, temporada, overrides]);
 
   const meta = geo?.metadata;
   const verTotal = geo?.features.reduce((a, f) => a + f.properties.ver_cop, 0) ?? 0;
@@ -242,6 +249,12 @@ export default function App() {
           zonas={geo?.features.length ?? 0}
           establecimientos={geo?.features.reduce((a, f) => a + f.properties.establecimientos, 0) ?? 0}
           etiquetaCerrado={t.cartuchoCerrado}
+          idioma={idioma}
+          abierto={cartaAbierta}
+          onCambio={(v) => {
+            setCartaAbierta(v);
+            if (v) setZonasAbierta(false);
+          }}
         />
       )}
 
@@ -266,7 +279,11 @@ export default function App() {
         <SeccionColapsable
           id="zonas"
           titulo={t.zonas}
-          defaultAbierta
+          abierta={zonasAbierta}
+          onCambio={(v) => {
+            setZonasAbierta(v);
+            if (v) setCartaAbierta(false);
+          }}
           className="milimetrado"
           resumen={(() => {
             const z = geo?.features.find((f) => f.properties.id === sel)?.properties;
@@ -388,6 +405,7 @@ export default function App() {
                     ventanaCritica={detalle.ventana_critica}
                     pico={detalle.pico}
                     simulado={detalle.simulado}
+                    idioma={idioma}
                     rotuloVentana={
                       <span className="rotulo" style={{ color: 'var(--critico)' }}>
                         <Definicion termino={idioma === 'en' ? 'critical window' : 'ventana crítica'} titulo={def.ventana.titulo}>
@@ -407,14 +425,12 @@ export default function App() {
               <Tornado
                 filas={detalle.sensibilidad}
                 sinCaja
-                definicionEta={
-                  <Definicion termino="η" titulo={def.eta.titulo}>{def.eta.cuerpo}</Definicion>
-                }
+                idioma={idioma}
               />
             </SeccionColapsable>
 
             <SeccionColapsable id="supuestos" titulo={t.supuestos} resumen={t.supuestosResumen}>
-              <PanelSupuestos onCambio={setOverrides} verTotal={verTotal} recalculando={recalc} sinCaja />
+              <PanelSupuestos onCambio={setOverrides} verTotal={verTotal} recalculando={recalc} sinCaja idioma={idioma} />
             </SeccionColapsable>
           </>
         )}

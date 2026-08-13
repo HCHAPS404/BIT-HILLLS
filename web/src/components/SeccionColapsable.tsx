@@ -11,12 +11,21 @@ interface Props {
   resumen?: string;
   children: ReactNode;
   defaultAbierta?: boolean;
+  abierta?: boolean;
+  onCambio?: (abierta: boolean) => void;
   className?: string;
   tituloColor?: string;
 }
 
-export function SeccionColapsable({ id, titulo, resumen, children, defaultAbierta = false, className, tituloColor = 'var(--acento)' }: Props) {
-  const [abierta, setAbierta] = useState(defaultAbierta);
+export function SeccionColapsable({
+  id, titulo, resumen, children, defaultAbierta = false, abierta: controlada, onCambio, className, tituloColor = 'var(--acento)',
+}: Props) {
+  const [interna, setInterna] = useState(defaultAbierta);
+  const abierta = controlada ?? interna;
+  const setAbierta = (v: boolean) => {
+    if (controlada === undefined) setInterna(v);
+    onCambio?.(v);
+  };
   const btnId = `${id}-btn`;
 
   return (
@@ -27,7 +36,7 @@ export function SeccionColapsable({ id, titulo, resumen, children, defaultAbiert
         className="cabecera-colapso"
         aria-expanded={abierta}
         aria-controls={id}
-        onClick={() => setAbierta((v) => !v)}
+        onClick={() => setAbierta(!abierta)}
       >
         <span className="rotulo" style={{ color: tituloColor }}>{titulo}</span>
         <span className="rotulo">{abierta ? 'cerrar' : 'abrir'}</span>

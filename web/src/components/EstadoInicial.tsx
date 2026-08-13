@@ -19,13 +19,15 @@ export function EstadoInicial({ idioma, simulado, onProbar }: Props) {
         {simulado ? t.verdeEscenario : t.verdeVivo}
       </p>
       {!simulado && (
-        <button
-          type="button"
-          onClick={onProbar}
-          style={{ marginTop: 'var(--esp-5)', fontSize: 'var(--texto-xs)', padding: 'var(--esp-3) var(--esp-5)', letterSpacing: '0.04em' }}
-        >
-          {t.probarAguacero}
-        </button>
+        <div className="ir-tabs ir-tabs-cta">
+          <button type="button" onClick={onProbar} aria-label={t.probarAguacero}>
+            <svg viewBox="0 0 12 12" aria-hidden>
+              <path d="M6 1.4C6 1.4 3.1 5.4 3.1 7.5a2.9 2.9 0 0 0 5.8 0C8.9 5.4 6 1.4 6 1.4z" />
+            </svg>
+            <span className="ir-tab-short" aria-hidden="true">{t.probarAguaceroCorto}</span>
+            <span className="ir-tab-full">&nbsp;{t.probarAguaceroLargo}</span>
+          </button>
+        </div>
       )}
     </>
   );

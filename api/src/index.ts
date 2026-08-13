@@ -11,7 +11,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type { Env } from './core/types';
-import { P, PARAMS_META, type ParamsOverride } from './core/params';
+import { P, PARAMS_META, mergeParams, type ParamsOverride } from './core/params';
 import { ZONAS, getZona, TOTAL_ESTABLECIMIENTOS } from './core/zonas';
 import { ESCENARIOS } from './adapters/escenarios';
 import { evaluar, aGeoJSON } from './services/evaluate';
@@ -31,6 +31,16 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
 
 const app = new Hono<{ Bindings: Env }>();
 app.use('*', cors());
+
+function leerOverrides(raw: string | undefined): ParamsOverride | undefined {
+  if (!raw) return undefined;
+  try {
+    const o = JSON.parse(raw);
+    return o && typeof o === 'object' && !Array.isArray(o) ? o as ParamsOverride : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 app.get('/', (c) =>
   c.json({
@@ -92,8 +102,10 @@ app.get('/api/riesgo/:zona', async (c) => {
   const escenario = c.req.query('escenario') || undefined;
   const temporada = (c.req.query('temporada') as any) || 'alta';
   const horas = Number(c.req.query('h') ?? 72);
+  const overrides = leerOverrides(c.req.query('overrides'));
+  const params = mergeParams(overrides);
 
-  const r = await evaluar({ escenario, temporada, horas, db: c.env.DB });
+  const r = await evaluar({ escenario, temporada, horas, db: c.env.DB, overrides });
   const z = r.zonas.find((x) => x.zona.id === id)!;
 
   return c.json({
@@ -104,8 +116,8 @@ app.get('/api/riesgo/:zona', async (c) => {
     ventana_critica: z.ventana_critica,
     horas_interrupcion: z.horas_interrupcion,
     ver_cop: z.ver_cop, desglose: z.desglose,
-    cop_por_hora: Math.round(copPorHora(zona)),
-    sensibilidad: sensibilidad(zona, z.pico.iri, z.horas_interrupcion, temporada),
+    cop_por_hora: Math.round(copPorHora(zona, params)),
+    sensibilidad: sensibilidad(zona, z.pico.iri, z.horas_interrupcion, temporada, params),
   });
 });
 

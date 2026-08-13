@@ -209,13 +209,23 @@ export default function App() {
         )}
       </div>
 
-      {meta?.avisos?.length ? (
-        <div className="aviso-api simulado">
-          <span className="rotulo" style={{ color: 'var(--alerta)', textTransform: 'none', letterSpacing: '0.04em' }}>
-            {meta.avisos.join(' · ')}
-          </span>
-        </div>
-      ) : null}
+      {(() => {
+        const avisos = (meta?.avisos ?? []).filter((a) => !/SQLITE|D1_ERROR/i.test(a));
+        const unicos: string[] = [];
+        for (const a of avisos) {
+          const limpio = /reportes ciudadanos/i.test(a)
+            ? 'Reportes ciudadanos no disponibles. Se usa el estado base del canal.'
+            : a;
+          if (!unicos.includes(limpio)) unicos.push(limpio);
+        }
+        return unicos.length ? (
+          <div className="aviso-api simulado">
+            <span className="rotulo" style={{ color: 'var(--alerta)', textTransform: 'none', letterSpacing: '0.04em' }}>
+              {unicos.join(' · ')}
+            </span>
+          </div>
+        ) : null;
+      })()}
 
       {error && (
         <div className="aviso-api" style={{ borderColor: 'var(--critico)' }}>

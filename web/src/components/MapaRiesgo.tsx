@@ -3,8 +3,14 @@
  * el fondo de la aplicación y los datos van sobrepuestos como HUD.
  *
  * Base: Carto dark-matter / positron según el modo — gratis y sin token.
- * Encima va un VELO de tono que asienta el basemap al color del chasis, y
- * sobre el velo las zonas con trama cartográfica.
+ * Encima un VELO de tono que asienta el basemap al color del chasis, y sobre
+ * el velo las zonas con trama cartográfica.
+ *
+ * NOTA DE DIAGNÓSTICO: MapLibre solicita tiles DESDE su bucle de render. En
+ * una pestaña oculta el navegador suspende requestAnimationFrame, así que el
+ * mapa se queda en blanco sin pedir un solo tile y sin emitir un solo error.
+ * Si el mapa aparece vacío, comprobar document.visibilityState antes de
+ * buscar el fallo en este archivo.
  */
 
 import { useEffect, useRef } from 'react';
@@ -53,11 +59,57 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
     /**
      * setStyle() borra fuentes y capas propias. Todo lo nuestro vive aquí para
      * poder re-montarlo tal cual al cambiar de modo, sin duplicar definiciones.
+     *
+     * ⚠ RE-ENTRANCIA — esto ya rompió el mapa una vez, dejarlo documentado:
+     * addImage/addSource/addLayer EMITEN `styledata`. Como abajo escuchamos
+     * `styledata` para re-montar tras un setStyle, cada addImage volvía a
+     * entrar aquí. La guarda era `if (m.getSource('zonas')) return`, pero esa
+     * condición solo se cumple al FINAL de la función: durante registrarTramas
+     * todavía no existe, así que no protegía nada. La re-entrada terminaba
+     * chocando en addSource ("Source zonas already exists"), la excepción moría
+     * dentro de un handler de eventos y el mapa quedaba sin una sola capa
+     * nuestra, sin un solo error en consola.
+     *
+     * La guarda tiene que ser una bandera propia puesta en la PRIMERA línea.
      */
+    let montando = false;
     const montarCapas = () => {
-      if (m.getSource('zonas')) return;
+      if (montando || m.getSource('zonas')) return;
+      montando = true;
+      try {
+        construirCapas();
+      } finally {
+        montando = false;
+      }
+    };
+
+    const construirCapas = () => {
       registrarTramas(m);
       const css = getComputedStyle(document.documentElement);
+
+      /**
+       * VELO DE TONO. El basemap trae su propio valor tonal y no coincide con
+       * el chasis: positron es casi blanco —más claro que nuestros paneles— y
+       * dark-matter tira a gris azulado frente al carbón. En los dos casos el
+       * mapa se lee pálido y despegado de la interfaz.
+       *
+       * Va SOBRE el basemap y DEBAJO de las zonas: asienta el terreno sin
+       * tocar el dato.
+       */
+      m.addSource('velo', {
+        type: 'geojson',
+        data: {
+          type: 'Feature', properties: {},
+          geometry: { type: 'Polygon', coordinates: [[[-180, -85], [180, -85], [180, 85], [-180, 85], [-180, -85]]] },
+        },
+      });
+      m.addLayer({
+        id: 'velo', type: 'fill', source: 'velo',
+        paint: {
+          'fill-color': css.getPropertyValue('--abismo').trim() || '#131315',
+          'fill-opacity': temaRef.current === 'dia' ? 0.40 : 0.30,
+        },
+      });
 
       m.addSource('zonas', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
 
@@ -121,6 +173,9 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
 
     // Tras un setStyle, MapLibre emite styledata con el estilo nuevo ya cargado.
     m.on('styledata', () => { if (m.isStyleLoaded()) montarCapas(); });
+    // Los fallos de MapLibre ocurren dentro de su propio bucle: sin esto se
+    // pierden en silencio, que es justo lo que costó una hora de diagnóstico.
+    m.on('error', (e: any) => console.error('[MAREA] error de mapa:', e?.error?.message ?? e));
 
     return () => { m.remove(); mapa.current = null; listo.current = false; };
   }, []);

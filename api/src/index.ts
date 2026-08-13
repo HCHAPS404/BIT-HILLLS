@@ -16,6 +16,14 @@ import { ZONAS, getZona, TOTAL_ESTABLECIMIENTOS } from './core/zonas';
 import { ESCENARIOS } from './adapters/escenarios';
 import { evaluar, aGeoJSON } from './services/evaluate';
 import { sensibilidad, copPorHora } from './core/economics';
+import { clasificarCanal } from './adapters/vision';
+
+function base64ToArrayBuffer(base64: string): ArrayBuffer {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes.buffer;
+}
 
 const app = new Hono<{ Bindings: Env }>();
 app.use('*', cors());
@@ -35,7 +43,7 @@ app.get('/', (c) =>
       'GET  /api/params                          → supuestos + metadatos',
       'GET  /api/escenarios',
       'POST /api/simular                         → recalcula con overrides, SIN escribir',
-      'POST /api/reportes                        → reporte ciudadano de canal',
+      'POST /api/reportes                        → reporte ciudadano de canal (foto_base64 → clasificador de visión, o severidad manual)',
     ],
   }),
 );
@@ -132,20 +140,49 @@ app.post('/api/simular', async (c) => {
  * el ciudadano que reporta mejora la predicción que protege al negocio que paga.
  * Ya alimenta el motor (ver adapters/reportes.ts) — el siguiente request a
  * /api/zonas o /api/riesgo/:zona para esta zona refleja el reporte.
- * TODO(equipo): conectar modelo de visión para severidad 0–3 desde la foto
- * (feat/vision-canal) — hoy `severidad` la pone el cliente directamente.
+ *
+ * Con `foto_base64` + binding AI, la severidad la pone el clasificador de
+ * visión (adapters/vision.ts). Sin foto, o sin AI disponible, `severidad`
+ * la pone el cliente directamente — el modo manual nunca se rompe.
  */
 app.post('/api/reportes', async (c) => {
-  const b = await c.req.json<{ zona_id: string; lat?: number; lon?: number; foto_url?: string; severidad?: number; telefono?: string }>().catch(() => null);
+  const b = await c.req
+    .json<{ zona_id: string; lat?: number; lon?: number; foto_url?: string; foto_base64?: string; severidad?: number; telefono?: string }>()
+    .catch(() => null);
   if (!b?.zona_id || !getZona(b.zona_id)) return c.json({ error: 'zona_id inválido', validas: ZONAS.map((z) => z.id) }, 400);
 
-  const sev = Math.max(0, Math.min(3, Number(b.severidad ?? 2)));
+  let sev: number;
+  let confianza = 1.0;
+  let pendienteRevision = 0;
+  let descripcionIa: string | null = null;
+
+  if (b.foto_base64 && c.env.AI) {
+    try {
+      const lectura = await clasificarCanal(c.env.AI, base64ToArrayBuffer(b.foto_base64));
+      sev = lectura.severidad;
+      confianza = lectura.confianza;
+      pendienteRevision = lectura.pendiente_revision ? 1 : 0;
+      descripcionIa = lectura.descripcion;
+    } catch (e: any) {
+      // El clasificador falló: no inventamos severidad, va a revisión humana.
+      sev = Math.max(0, Math.min(3, Number(b.severidad ?? 2)));
+      confianza = 0;
+      pendienteRevision = 1;
+      descripcionIa = `clasificador falló: ${String(e?.message ?? e).slice(0, 150)}`;
+    }
+  } else {
+    sev = Math.max(0, Math.min(3, Number(b.severidad ?? 2)));
+  }
+
   if (c.env.DB) {
     await c.env.DB.prepare(
-      'INSERT INTO reportes (zona_id, lat, lon, foto_url, severidad, confianza, pendiente_revision, telefono) VALUES (?,?,?,?,?,?,?,?)',
-    ).bind(b.zona_id, b.lat ?? null, b.lon ?? null, b.foto_url ?? null, sev, 1.0, 0, b.telefono ?? null).run();
+      'INSERT INTO reportes (zona_id, lat, lon, foto_url, severidad, confianza, pendiente_revision, descripcion_ia, telefono) VALUES (?,?,?,?,?,?,?,?,?)',
+    ).bind(b.zona_id, b.lat ?? null, b.lon ?? null, b.foto_url ?? null, sev, confianza, pendienteRevision, descripcionIa, b.telefono ?? null).run();
   }
-  return c.json({ ok: true, zona_id: b.zona_id, severidad: sev, obstruccion_estimada: sev / 3, persistido: !!c.env.DB });
+  return c.json({
+    ok: true, zona_id: b.zona_id, severidad: sev, confianza,
+    pendiente_revision: !!pendienteRevision, obstruccion_estimada: sev / 3, persistido: !!c.env.DB,
+  });
 });
 
 export default {

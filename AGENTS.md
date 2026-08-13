@@ -17,14 +17,14 @@ cd web && npm install && npm run dev   # :5173
 
 ## Estado al 2026-08-13
 
-**Ramas (4):**
+**Ramas:** todas las de feature (`feat/marea-base`, `feat/vision-canal`,
+`feat/fontumi`, `feat/lectura-y-pitch`) están mergeadas a `main` vía PRs
+#1-#5. `main` es la única rama que hay que trabajar de acá en adelante —
+todo el trabajo pendiente sale de ahí. Las ramas remotas no se borraron
+(quedan como historial), pero están todas al día con `main` salvo que
+alguien abra una nueva.
 
-| Rama | Estado | Dueño de facto |
-|---|---|---|
-| `main` | Base mergeada (PR #1 + #2 + #3) + D1 activo con reportes y visión conectados al motor + deploy real en vivo + CI/CD | tronco |
-| `feat/marea-base` | Al día con `main` (sus 2 commits pendientes ya se mergearon vía PR #2) | Andres (Sidechain07) — activo, no tocar sin avisarle |
-| `feat/vision-canal` | Mergeada a `main` vía PR #3 (2026-08-13). Rama remota se dejó igual, no se borró. | resuelta |
-| `feat/fontumi` | Atrás de `main` (le falta el pulido de UI, el CI/CD, y el wiring de reportes/AI). Aporta `api/src/services/notify.ts`, sin conectar a nada | huérfana, libre para retomar |
+**Deploy en vivo:** `main` es lo que corre en producción ahora mismo.
 
 **Deploy (Cloudflare, cuenta `helmut.chs@gmail.com`, account id
 `e75862195de36f76657bda6bef14ec71`):**
@@ -50,14 +50,28 @@ Verificado leyendo el código, no asumido:
    disponible clasifica con `clasificarCanal()` (timeout de 20s — sin
    esto una imagen degenerada cuelga la respuesta indefinidamente,
    reproducido en pruebas). Verificado end-to-end en producción.
-3. **`notify.ts` (rama `feat/fontumi`) no está conectado a nada.**
-   El cron `scheduled()` en `index.ts` calcula zonas críticas pero nunca
-   llama a un `Notificador`. No existe endpoint para dar de alta
-   `suscriptores` (la tabla ya existe en `schema.sql`, sin ruta que la
-   use). `yaAvisado()` existe pero nada inserta en `alertas_enviadas`.
+3. ~~`notify.ts` no está conectado a nada~~ — **resuelto 2026-08-13**
+   (PR #5). `scheduled()` notifica a los suscriptores de zonas en
+   naranja/rojo (WhatsApp siempre, voz si rojo y lo pidieron), con
+   anti-spam de 6h (`yaAvisado`/`registrarAviso`, este último antes no
+   existía — `yaAvisado` nunca tenía nada que encontrar). Nuevo
+   `POST /api/suscriptores` para el alta. De paso se corrigió un bug real
+   en `aplica()`: comparaba `zona_id` contra `zona_nombre` (campos
+   distintos, nunca podía matchear). `ConsoleNotifier` sigue siendo el
+   default — sin `FONTUMI_TOKEN` no hay riesgo de mensajes reales.
 4. **`web/.env.production` y las variables de GitHub Actions ya apuntan
    al Worker real** — si el Worker se redespliega bajo otra URL, hay que
    actualizar ambos.
+
+**Nota sobre PR #4 (`feat/lectura-y-pitch`, de Andres):** creó su propia
+versión simplificada de `notify.ts` (solo plantillas, sin transporte) en
+paralelo, sin saber que `feat/fontumi` ya tenía una versión completa sin
+mergear. Al mergear PR #5 hubo que reconciliar ambas a mano — se conservó
+la estructura completa (`Notificador`/`ConsoleNotifier`/`FontumiNotifier`)
+y se incorporó su `accionRecomendada()`, que además mejora el texto por
+banda (antes solo distinguía rojo vs. el resto). Si tocas `notify.ts`,
+revisa que `web/src/lib/lectura.ts` siga diciendo lo mismo — es texto
+duplicado a propósito, no importado.
 
 ## Fricciones ya resueltas (no las repitas)
 
@@ -89,11 +103,14 @@ Verificado leyendo el código, no asumido:
 
 ## Pendiente, priorizado
 
+Todos los gaps de integración conocidos están cerrados. Lo que queda es
+trabajo de fondo, no bloqueante:
+
 1. Rotar el `CLOUDFLARE_API_TOKEN` si en algún momento se compartió en texto plano fuera de GitHub Secrets.
-2. Rebasar `feat/fontumi` sobre `main` (le falta el pulido de UI, el CI/CD y el wiring de reportes/AI ya resueltos en `main`).
-3. Cerrar el gap #3 de la sección anterior: wiring de `notify.ts` + endpoint de suscriptores.
-4. Calibración del modelo IRI contra datos de OAGRD/ERA5 (ver README, sección "Honestidad del modelo").
-5. Opcional: guardar la foto del reporte en R2 para historial visual.
+2. Conectar `FontumiNotifier` a la API real cuando llegue la cuenta sandbox — `ConsoleNotifier` cubre el demo mientras tanto.
+3. Calibración del modelo IRI contra datos de OAGRD/ERA5 (ver README, sección "Honestidad del modelo").
+4. Opcional: guardar la foto del reporte en R2 para historial visual.
+5. `.pages.dev` de producción muestra un chunk JS de ~1 MB (aviso de Vite en el build) — no bloquea nada, pero si hay tiempo, `manualChunks` ayudaría a la carga inicial.
 
 ## Resuelto
 
@@ -102,3 +119,5 @@ Verificado leyendo el código, no asumido:
 - ~~Reportes ciudadanos conectados al motor de riesgo~~ — 2026-08-13
 - ~~Fix de mapa en blanco (re-entrancia) + contraste WCAG~~ — mergeado vía PR #2, 2026-08-13
 - ~~Clasificador de visión conectado a POST /api/reportes~~ — mergeado vía PR #3, 2026-08-13
+- ~~Fontumi conectado al cron + alta de suscriptores~~ — mergeado vía PR #5, 2026-08-13
+- ~~Todas las ramas de feature integradas a main~~ — 2026-08-13

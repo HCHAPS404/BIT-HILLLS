@@ -17,6 +17,10 @@ import { ESCENARIOS } from './adapters/escenarios';
 import { evaluar, aGeoJSON } from './services/evaluate';
 import { sensibilidad, copPorHora } from './core/economics';
 import { clasificarCanal } from './adapters/vision';
+import {
+  construirNotificador, aplica, plantillaWhatsApp, guionVoz,
+  yaAvisado, registrarAviso, leerDestinatarios, type Aviso,
+} from './services/notify';
 
 function base64ToArrayBuffer(base64: string): ArrayBuffer {
   const binary = atob(base64);
@@ -44,6 +48,7 @@ app.get('/', (c) =>
       'GET  /api/escenarios',
       'POST /api/simular                         → recalcula con overrides, SIN escribir',
       'POST /api/reportes                        → reporte ciudadano de canal (foto_base64 → clasificador de visión, o severidad manual)',
+      'POST /api/suscriptores                    → alta de negocio para alertas WhatsApp/voz',
     ],
   }),
 );
@@ -185,6 +190,32 @@ app.post('/api/reportes', async (c) => {
   });
 });
 
+/**
+ * Alta (o actualización) de un negocio suscrito a alertas. Fontumi manda
+ * WhatsApp a partir de `umbral`, y llamada de voz en rojo si `voz: true`.
+ */
+app.post('/api/suscriptores', async (c) => {
+  const b = await c.req
+    .json<{ telefono: string; nombre?: string; establecimiento?: string; categoria?: string; zona_id: string; umbral?: string; voz?: boolean }>()
+    .catch(() => null);
+  if (!b?.telefono || !b?.zona_id || !getZona(b.zona_id)) {
+    return c.json({ error: 'telefono y zona_id (válido) son requeridos', validas: ZONAS.map((z) => z.id) }, 400);
+  }
+  if (!c.env.DB) return c.json({ error: 'D1 no disponible en este entorno' }, 503);
+
+  const umbral = ['verde', 'amarillo', 'naranja', 'rojo'].includes(b.umbral ?? '') ? b.umbral : 'naranja';
+  await c.env.DB.prepare(
+    `INSERT INTO suscriptores (telefono, nombre, establecimiento, categoria, zona_id, umbral, voz)
+     VALUES (?,?,?,?,?,?,?)
+     ON CONFLICT(telefono) DO UPDATE SET
+       nombre = excluded.nombre, establecimiento = excluded.establecimiento,
+       categoria = excluded.categoria, zona_id = excluded.zona_id,
+       umbral = excluded.umbral, voz = excluded.voz`,
+  ).bind(b.telefono, b.nombre ?? null, b.establecimiento ?? null, b.categoria ?? null, b.zona_id, umbral, b.voz ? 1 : 0).run();
+
+  return c.json({ ok: true, telefono: b.telefono, zona_id: b.zona_id, umbral, voz: !!b.voz });
+});
+
 export default {
   fetch: app.fetch,
 
@@ -200,7 +231,40 @@ export default {
           const stmt = env.DB.prepare('INSERT OR REPLACE INTO evaluaciones (zona_id, t, iri, banda, componentes, ver_cop) VALUES (?,?,?,?,?,?)');
           await env.DB.batch(r.zonas.map((z) => stmt.bind(z.zona.id, z.pico.t, z.pico.iri, z.pico.banda, JSON.stringify(z.pico.componentes), z.ver_cop)));
         }
-        // TODO(equipo): notificar por Fontumi cuando banda ∈ {naranja, rojo}.
+
+        // Notificar por Fontumi cuando banda ∈ {naranja, rojo}. Anti-spam:
+        // máximo un aviso por zona/banda cada 6 h (yaAvisado/registrarAviso).
+        if (env.DB && criticas.length > 0) {
+          const notificador = construirNotificador(env);
+          const canal = env.FONTUMI_TOKEN ? 'whatsapp' : 'consola';
+
+          for (const z of criticas) {
+            const banda = z.pico.banda;
+            if (await yaAvisado(env, z.zona.id, banda)) continue;
+
+            const destinatarios = await leerDestinatarios(env, z.zona.id);
+            const aplican = destinatarios.filter((d) => aplica(d, {
+              zona_id: z.zona.id, zona_nombre: z.zona.nombre, banda, iri: z.pico.iri,
+              desde: z.ventana_critica?.desde ?? z.pico.t, hasta: z.ventana_critica?.hasta ?? z.pico.t,
+              ver_cop: z.ver_cop, simulado: r.simulado,
+            } satisfies Aviso));
+            if (aplican.length === 0) continue;
+
+            const aviso: Aviso = {
+              zona_id: z.zona.id, zona_nombre: z.zona.nombre, banda, iri: z.pico.iri,
+              desde: z.ventana_critica?.desde ?? z.pico.t, hasta: z.ventana_critica?.hasta ?? z.pico.t,
+              ver_cop: z.ver_cop, simulado: r.simulado,
+            };
+            const msg = plantillaWhatsApp(aviso);
+            const guion = guionVoz(aviso);
+
+            for (const d of aplican) {
+              await notificador.whatsapp(d, msg);
+              if (d.voz && banda === 'rojo') await notificador.voz(d, guion);
+            }
+            await registrarAviso(env, z.zona.id, banda, canal, aplican.length);
+          }
+        }
       })(),
     );
   },

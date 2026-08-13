@@ -26,6 +26,7 @@ export interface Destinatario {
 }
 
 export interface Aviso {
+  zona_id: string;
   zona_nombre: string;
   banda: Banda;
   iri: number;
@@ -42,9 +43,13 @@ export interface Notificador {
 
 const ORDEN: Record<Banda, number> = { verde: 0, amarillo: 1, naranja: 2, rojo: 3 };
 
-/** ¿Este destinatario quiere este aviso? */
+/**
+ * ¿Este destinatario quiere este aviso? Su zona y su banda mínima.
+ * (Bug corregido: comparaba zona_id contra zona_nombre — nunca podía
+ * matchear. Ahora compara el campo correcto y exige ambas condiciones.)
+ */
 export const aplica = (d: Destinatario, a: Aviso) =>
-  d.zona_id === a.zona_nombre || ORDEN[a.banda] >= ORDEN[d.umbral];
+  d.zona_id === a.zona_id && ORDEN[a.banda] >= ORDEN[d.umbral];
 
 /** Texto de WhatsApp. Corto: se lee en la pantalla de bloqueo. */
 export function plantillaWhatsApp(a: Aviso): string {
@@ -135,4 +140,34 @@ export async function yaAvisado(env: Env, zona_id: string, banda: Banda): Promis
       WHERE zona_id = ? AND banda = ? AND t > datetime('now','-6 hours') LIMIT 1`,
   ).bind(zona_id, banda).first();
   return !!r;
+}
+
+/** Deja constancia de que se avisó, para que yaAvisado() lo detecte después. */
+export async function registrarAviso(
+  env: Env,
+  zona_id: string,
+  banda: Banda,
+  canal: 'whatsapp' | 'voz' | 'consola',
+  destinatarios: number,
+): Promise<void> {
+  if (!env.DB) return;
+  await env.DB.prepare(
+    'INSERT INTO alertas_enviadas (zona_id, banda, canal, destinatarios) VALUES (?,?,?,?)',
+  ).bind(zona_id, banda, canal, destinatarios).run();
+}
+
+/** Suscriptores de una zona. Filtrar por umbral corre en aplica(), no acá. */
+export async function leerDestinatarios(env: Env, zona_id: string): Promise<Destinatario[]> {
+  if (!env.DB) return [];
+  const r = await env.DB.prepare(
+    'SELECT telefono, nombre, establecimiento, zona_id, umbral, voz FROM suscriptores WHERE zona_id = ?',
+  ).bind(zona_id).all<{ telefono: string; nombre: string | null; establecimiento: string | null; zona_id: string; umbral: Banda; voz: number }>();
+  return (r.results ?? []).map((s) => ({
+    telefono: s.telefono,
+    nombre: s.nombre ?? undefined,
+    establecimiento: s.establecimiento ?? undefined,
+    zona_id: s.zona_id,
+    umbral: s.umbral,
+    voz: !!s.voz,
+  }));
 }

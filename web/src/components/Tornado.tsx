@@ -38,9 +38,9 @@ export function Tornado({ filas }: { filas: Fila[] }) {
   const utiles = filas.filter((f) => f.amplitud_pct !== 0);
   if (!utiles.length) {
     return (
-      <div className="panel" style={{ padding: 11 }}>
+      <div className="panel" style={{ padding: 'var(--esp-5)' }}>
         <div className="rotulo" style={{ color: 'var(--acento)' }}>sensibilidad</div>
-        <div className="rotulo" style={{ marginTop: 6, textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5 }}>
+        <div className="rotulo" style={{ marginTop: 'var(--esp-3)', textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5 }}>
           Sin interrupción prevista, el VER es 0 y ningún supuesto lo mueve.
           Cambia a un escenario con aguacero para ver de qué depende el número.
         </div>
@@ -53,30 +53,30 @@ export function Tornado({ filas }: { filas: Fila[] }) {
   const span = Math.max(...utiles.map((f) => Math.max(Math.abs(f.alto - base), Math.abs(base - f.bajo))));
 
   return (
-    <div className="panel milimetrado" style={{ padding: 11 }}>
+    <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <div className="rotulo" style={{ color: 'var(--acento)' }}>de qué depende el número</div>
-        <span className="rotulo" style={{ fontSize: 8.5 }}>±30 %</span>
+        <span className="rotulo" style={{ fontSize: 'var(--texto-xs)' }}>±30 %</span>
       </div>
 
-      <div style={{ marginTop: 10 }}>
+      <div style={{ marginTop: 'var(--esp-4)' }}>
         {utiles.map((f, i) => {
           const izq = Math.max(0, (base - f.bajo) / span) * 50;
           const der = Math.max(0, (f.alto - base) / span) * 50;
           const dominante = i === 0;
           return (
-            <div key={f.parametro} style={{ marginBottom: 9 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 6 }}>
-                <span style={{ fontSize: 10.5, color: dominante ? 'var(--papel)' : 'var(--papel-tenue)' }}>
+            <div key={f.parametro} style={{ marginBottom: 'var(--esp-4)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 'var(--esp-3)' }}>
+                <span style={{ fontSize: 'var(--texto-sm)', fontWeight: dominante ? 600 : 400, color: dominante ? 'var(--papel)' : 'var(--papel-tenue)' }}>
                   {NOMBRE[f.parametro] ?? f.parametro}
                 </span>
-                <span className="num" style={{ fontSize: 10, color: dominante ? 'var(--alerta)' : 'var(--papel-fant)' }}>
+                <span className="num" style={{ fontSize: 'var(--texto-xs)', color: dominante ? 'var(--alerta)' : 'var(--papel-fant)' }}>
                   ±{Math.abs(f.amplitud_pct / 2).toFixed(0)} %
                 </span>
               </div>
 
               {/* Eje central = VER base. Izquierda = supuesto bajo, derecha = alto. */}
-              <div style={{ position: 'relative', height: 11, marginTop: 3, background: 'var(--abismo)', border: 'var(--linea)' }}>
+              <div style={{ position: 'relative', height: 11, marginTop: 'var(--esp-2)', background: 'var(--abismo)', border: 'var(--linea)' }}>
                 <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, background: 'var(--papel-fant)', zIndex: 2 }} />
                 <div style={{
                   position: 'absolute', right: '50%', top: 1, bottom: 1, width: `${izq}%`,
@@ -88,9 +88,9 @@ export function Tornado({ filas }: { filas: Fila[] }) {
                 }} />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 1 }}>
-                <span className="num rotulo" style={{ fontSize: 8 }}>{copCorto(f.bajo)}</span>
-                <span className="num rotulo" style={{ fontSize: 8 }}>{copCorto(f.alto)}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'var(--esp-1)' }}>
+                <span className="num rotulo" style={{ fontSize: 'var(--texto-xs)' }}>{copCorto(f.bajo)}</span>
+                <span className="num rotulo" style={{ fontSize: 'var(--texto-xs)' }}>{copCorto(f.alto)}</span>
               </div>
             </div>
           );
@@ -98,8 +98,8 @@ export function Tornado({ filas }: { filas: Fila[] }) {
       </div>
 
       <div className="rotulo" style={{
-        fontSize: 8.5, textTransform: 'none', letterSpacing: '0.03em',
-        lineHeight: 1.45, borderTop: 'var(--linea)', paddingTop: 7, marginTop: 2,
+        fontSize: 'var(--texto-xs)', textTransform: 'none', letterSpacing: '0.03em',
+        lineHeight: 1.5, borderTop: 'var(--linea)', paddingTop: 'var(--esp-4)', marginTop: 'var(--esp-1)',
       }}>
         {(() => {
           // Varios parámetros pueden empatar: son factores lineales del MISMO

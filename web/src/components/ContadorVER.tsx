@@ -41,13 +41,13 @@ export function ContadorVER({ valor, horas, etiqueta = 'valor expuesto en riesgo
       <div
         className="num"
         style={{
-          fontSize: 30, fontWeight: 700, lineHeight: 1.15, marginTop: 5,
+          fontSize: 'var(--texto-2xl)', fontWeight: 700, lineHeight: 1.15, marginTop: 'var(--esp-2)',
           color: activo ? 'var(--critico)' : 'var(--papel-fant)',
         }}
       >
         {cop(Math.round(n))}
       </div>
-      <div className="rotulo" style={{ marginTop: 5, textTransform: 'none', letterSpacing: '0.04em' }}>
+      <div className="rotulo" style={{ marginTop: 'var(--esp-2)', textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5 }}>
         {activo ? `${horas} h de interrupción · ` : 'sin interrupción prevista · '}
         <span style={{ color: 'var(--alerta)' }}>valor esperado, supuestos editables</span>
       </div>

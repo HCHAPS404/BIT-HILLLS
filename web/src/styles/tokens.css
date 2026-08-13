@@ -107,6 +107,20 @@
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
   --display: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
 
+  --texto-xs: 11px;
+  --texto-sm: 12px;
+  --texto-md: 14px;
+  --texto-lg: 16px;
+  --texto-xl: 20px;
+  --texto-2xl: 30px;
+
+  --esp-1: 2px;
+  --esp-2: 4px;
+  --esp-3: 6px;
+  --esp-4: 8px;
+  --esp-5: 12px;
+  --esp-6: 16px;
+
   /* Radios tomados del sistema de la Plataforma Psicológica. */
   --r-sm: 6px;
   --r: 8px;
@@ -134,8 +148,8 @@ html, body, #root {
 /* Etiquetas en versalitas, como en una carta náutica */
 .rotulo {
   font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.14em;
+  font-size: var(--texto-xs);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--papel-fant);
   font-weight: 500;
@@ -144,15 +158,10 @@ html, body, #root {
 /* Papel milimetrado: retícula sutil en paneles de datos */
 .milimetrado {
   background-image:
-    linear-gradient(var(--sonda) 1px, transparent 1px),
-    linear-gradient(90deg, var(--sonda) 1px, transparent 1px);
+    linear-gradient(color-mix(in srgb, var(--sonda) 14%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--sonda) 14%, transparent) 1px, transparent 1px);
   background-size: 8px 8px;
   background-position: -1px -1px;
-  opacity: 1;
-}
-.milimetrado::before {
-  content: ''; position: absolute; inset: 0;
-  background: inherit; opacity: 0.28; pointer-events: none;
 }
 
 /**
@@ -190,18 +199,18 @@ html, body, #root {
  * paralelas y el ojo lo detecta aunque no sepa por qué.
  */
 .bisel {
-  padding: 6px;
+  padding: var(--esp-3);
   border-radius: var(--r-lg);
   background-color: color-mix(in srgb, var(--papel) 4%, transparent);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--papel) 7%, transparent);
 }
 .bisel > .nucleo {
-  border-radius: calc(var(--r-lg) - 6px);
+  border-radius: calc(var(--r-lg) - var(--esp-3));
   background-color: var(--abismo);
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--papel) 7%, transparent),
     0 0 0 1px color-mix(in srgb, var(--papel) 6%, transparent);
-  padding: 10px;
+  padding: var(--esp-4);
 }
 
 /* Banda diagonal para TODO lo que sea simulación. Nunca se disfraza de dato real. */
@@ -215,8 +224,8 @@ html, body, #root {
 
 .badge {
   font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.12em;
+  font-size: var(--texto-xs);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 3px 9px;
   border: 1px solid currentColor;
@@ -242,6 +251,7 @@ html, body, #root {
 
 button, input, select {
   font-family: var(--mono);
+  font-size: var(--texto-xs);
   background-color: var(--abismo);
   color: var(--papel);
   border: none;
@@ -253,7 +263,7 @@ button, input, select {
 /* Controles en píldora, como en la Plataforma Psicológica. */
 button, select {
   border-radius: var(--r-pill);
-  padding-inline: 12px;
+  padding-inline: var(--esp-5);
   cursor: pointer;
   transition: box-shadow 220ms var(--curva), color 220ms var(--curva);
 }
@@ -271,7 +281,7 @@ button:focus-visible, select:focus-visible {
 
 /* Las filas del ranking son superficies, no píldoras: con radio de píldora
    una lista densa se vuelve ilegible. Radio suave y ya. */
-.fila-zona { border-radius: var(--r); padding-inline: 10px; }
+.fila-zona { border-radius: var(--r); padding-inline: var(--esp-4); }
 
 input[type="range"] { accent-color: var(--acento); background: transparent; border: none; }
 
@@ -289,30 +299,24 @@ input[type="range"] { accent-color: var(--acento); background: transparent; bord
    El jurado puede abrir esto en el celular; no es hipotético. */
 
 .layout { position: fixed; inset: 0; overflow: hidden; }
-.capa-mapa { position: absolute; inset: 0; }
+.capa-mapa { position: absolute; inset: 0; overflow: hidden; }
 
 .hud {
   position: absolute; top: 66px; bottom: 12px; z-index: 10;
-  display: flex; flex-direction: column; gap: 9px;
+  display: flex; flex-direction: column; gap: var(--esp-5);
   overflow-y: auto; overscroll-behavior: contain;
 }
 .hud-izq { left: 12px; width: 272px; }
 .hud-der { right: 12px; width: 316px; }
 
-/* Escritorio: la barra flota sobre el mapa con degradado.
+/* Escritorio: la barra flota sobre el mapa con fondo sólido.
    Ojo: esto vive en CSS y NO en estilo inline, porque el inline le ganaría
    a la media query de móvil y la barra seguiría tapando el mapa. */
 .barra-sup {
   position: absolute; top: 0; left: 0; right: 0; z-index: 12;
-  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  padding: 10px 14px;
-  /* Degradado derivado del token, para que siga al modo día/noche. */
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--abismo) 96%, transparent),
-    color-mix(in srgb, var(--abismo) 74%, transparent) 70%,
-    transparent
-  );
+  display: flex; align-items: center; gap: var(--esp-5); flex-wrap: wrap;
+  padding: var(--esp-4) var(--esp-5);
+  background-color: var(--abismo);
   border-bottom: var(--linea);
 }
 
@@ -353,7 +357,7 @@ button, select, input, .fila-zona {
 .cartucho-x {
   position: absolute; top: 5px; right: 6px;
   border: none; background: none; color: var(--papel-fant);
-  font-size: 14px; line-height: 1; padding: 0 5px;
+  font-size: var(--texto-md); line-height: 1; padding: 0 5px;
 }
 .cartucho-x:hover { color: var(--critico); }
 .cartucho-cerrado {
@@ -367,6 +371,9 @@ button, select, input, .fila-zona {
 }
 
 @media (max-width: 900px) {
+  html { scrollbar-width: none; }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+
   .layout { position: static; inset: auto; overflow: visible; min-height: 100%; }
   .capa-mapa { position: relative; inset: auto; height: 46vh; min-height: 260px; }
   .hud {
@@ -380,7 +387,7 @@ button, select, input, .fila-zona {
      ~374 px de alto y la barra le comía la mitad, así que entra en el flujo. */
   .barra-sup {
     position: sticky; top: 0;
-    background: var(--abismo);
+    background-color: var(--abismo);
     border-bottom: var(--linea);
   }
   .layout { display: flex; flex-direction: column; }

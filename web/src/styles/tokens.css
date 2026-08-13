@@ -12,7 +12,8 @@
  * REGLAS QUE NO SE ROMPEN:
  *   1. Radios del sistema de la Plataforma Psicológica (6/8/12/pill).
  *      Los controles van en píldora; las filas densas, en radio suave.
- *   2. Cero sombras. La jerarquía se hace con líneas de 1px y contraste.
+ *   2. Sin sombras duras ni negras. El relieve se hace con anillo hairline
+ *      + luz interior en el canto superior: material, no drama.
  *   3. Todo número que sea DATO va en monoespaciada con tabular-nums.
  *      Los dígitos no bailan al actualizarse.
  *   4. Retícula de papel milimetrado en los paneles de datos.
@@ -96,6 +97,8 @@
 
 :root {
   --linea: 1px solid var(--sonda);
+  /* Movimiento con masa: arranca rápido y asienta. Nunca `ease` ni `linear`. */
+  --curva: cubic-bezier(0.32, 0.72, 0, 1);
   --linea-viva: 1px solid var(--acento);
 
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
@@ -149,13 +152,53 @@ html, body, #root {
   background: inherit; opacity: 0.28; pointer-events: none;
 }
 
+/**
+ * MATERIAL: PLACA EN BANDEJA, NO TARJETA SOBRE FONDO.
+ *
+ * Un panel plano con borde gris de 1px es el default de todo el mundo. Un
+ * instrumento real no se ve así: es una placa asentada en una bandeja, con
+ * un canto que atrapa la luz arriba y sombra donde apoya.
+ *
+ * Se consigue con tres capas de box-shadow y CERO cambios de DOM:
+ *   1. anillo hairline  — sustituye al borde gris; alfa baja sobre la tinta,
+ *                         así se adapta solo a modo día y noche
+ *   2. luz superior     — inset en el canto de arriba: el brillo del bisel
+ *   3. asiento          — sombra difusa, nunca dura ni negra
+ *
+ * Sin sombras duras: la jerarquía sigue siendo por contraste, no por drama.
+ */
 .panel {
   /* background-color, NO el atajo `background`: el atajo resetea
      background-image y borraba la retícula de .milimetrado. */
   background-color: var(--profundo);
-  border: var(--linea);
+  border: none;
   border-radius: var(--r-lg);
   position: relative;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--papel) 9%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--papel) 8%, transparent),
+    0 2px 10px color-mix(in srgb, var(--abismo) 55%, transparent);
+}
+
+/**
+ * DOBLE BISEL — para el elemento héroe (el Reloj de Marea).
+ * Cáscara exterior + núcleo interior con radios CONCÉNTRICOS: el radio
+ * interior es el exterior menos el padding, si no las curvas no son
+ * paralelas y el ojo lo detecta aunque no sepa por qué.
+ */
+.bisel {
+  padding: 6px;
+  border-radius: var(--r-lg);
+  background-color: color-mix(in srgb, var(--papel) 4%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--papel) 7%, transparent);
+}
+.bisel > .nucleo {
+  border-radius: calc(var(--r-lg) - 6px);
+  background-color: var(--abismo);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--papel) 7%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--papel) 6%, transparent);
+  padding: 10px;
 }
 
 /* Banda diagonal para TODO lo que sea simulación. Nunca se disfraza de dato real. */
@@ -187,7 +230,7 @@ html, body, #root {
   100% { transform: scale(2.6);  opacity: 0; }
 }
 .onda {
-  animation: onda 2.4s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+  animation: onda 2.4s var(--curva) infinite;
   transform-origin: center;
 }
 
@@ -198,7 +241,10 @@ button, input, select {
   font-family: var(--mono);
   background-color: var(--abismo);
   color: var(--papel);
-  border: var(--linea);
+  border: none;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--papel) 12%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--papel) 7%, transparent);
 }
 
 /* Controles en píldora, como en la Plataforma Psicológica. */
@@ -206,9 +252,16 @@ button, select {
   border-radius: var(--r-pill);
   padding-inline: 12px;
   cursor: pointer;
-  transition: border-color 140ms ease, color 140ms ease;
+  transition: box-shadow 220ms var(--curva), color 220ms var(--curva);
 }
-button:hover, select:hover { border-color: var(--acento); color: var(--acento); }
+button:hover, select:hover {
+  color: var(--acento);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--acento) 55%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--papel) 10%, transparent);
+}
+/* Se hunde al presionar: masa física, no un cambio de color. */
+button:active { transform: scale(0.975); }
 button:focus-visible, select:focus-visible {
   outline: 2px solid var(--acento); outline-offset: 2px;
 }
@@ -272,7 +325,7 @@ input[type="range"] { accent-color: var(--acento); background: transparent; bord
  * interactivo, que sí cambia por estado del elemento y no por el tema.
  */
 button, select, input, .fila-zona {
-  transition: border-color 140ms ease, color 140ms ease;
+  transition: box-shadow 220ms var(--curva), color 220ms var(--curva);
 }
 
 /* ─── MARCO DE INSTRUMENTO ───────────────────────────────
@@ -287,7 +340,11 @@ button, select, input, .fila-zona {
   width: 224px; padding: 13px 14px;
   border-radius: var(--r-lg);
   background-color: color-mix(in srgb, var(--profundo) 94%, transparent);
-  border: var(--linea);
+  border: none;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--papel) 10%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--papel) 8%, transparent),
+    0 4px 18px color-mix(in srgb, var(--abismo) 50%, transparent);
   backdrop-filter: blur(2px);
 }
 .cartucho-x {

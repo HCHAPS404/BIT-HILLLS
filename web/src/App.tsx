@@ -234,8 +234,12 @@ export default function App() {
               <div className="rotulo" style={{ textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.4, marginTop: 3 }}>
                 {detalle.zona.nota}
               </div>
-              <div style={{ marginTop: 11 }}>
-                <RelojMarea serie={detalle.serie} ventanaCritica={detalle.ventana_critica} pico={detalle.pico} simulado={detalle.simulado} />
+              {/* Doble bisel: el reloj es el elemento héroe y va montado como
+                  una placa dentro de su bandeja, no plano sobre el panel. */}
+              <div className="bisel" style={{ marginTop: 11 }}>
+                <div className="nucleo">
+                  <RelojMarea serie={detalle.serie} ventanaCritica={detalle.ventana_critica} pico={detalle.pico} simulado={detalle.simulado} />
+                </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginTop: 12, borderTop: 'var(--linea)', paddingTop: 9 }}>
                 {([['R', detalle.pico.componentes.R, t.cR], ['D', detalle.pico.componentes.D, t.cD],

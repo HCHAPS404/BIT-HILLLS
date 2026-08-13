@@ -2,8 +2,9 @@
  * Mapa a sangre completa. No es un widget dentro de una tarjeta: el mapa ES
  * el fondo de la aplicación y los datos van sobrepuestos como HUD.
  *
- * Base: Carto dark-matter — gratis, sin token, y su gris casi negro cae
- * exactamente sobre nuestra paleta de carta náutica.
+ * Base: Carto dark-matter / positron según el modo — gratis y sin token.
+ * Encima va un VELO de tono que asienta el basemap al color del chasis, y
+ * sobre el velo las zonas con trama cartográfica.
  */
 
 import { useEffect, useRef } from 'react';
@@ -30,17 +31,24 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
   const mapa = useRef<maplibregl.Map | null>(null);
   const listo = useRef(false);
   const temaAplicado = useRef(tema);
+  // montarCapas se define en un efecto con deps []: sin ref capturaría el
+  // tema inicial y el velo conservaría la opacidad del modo anterior.
+  const temaRef = useRef(tema);
+  temaRef.current = tema;
 
   useEffect(() => {
     if (!cont.current || mapa.current) return;
     const m = new maplibregl.Map({
       container: cont.current,
-      style: ESTILOS[tema],
+      style: ESTILOS[temaRef.current],
       center: [-75.529, 10.408],
       zoom: 12.1,
       attributionControl: { compact: true },
     });
     mapa.current = m;
+    // Handle de depuración: en un hackathon poder inspeccionar el mapa desde
+    // la consola vale más que adivinar por qué una capa no pinta.
+    (window as any).__mapa = m;
 
     /**
      * setStyle() borra fuentes y capas propias. Todo lo nuestro vive aquí para
@@ -49,6 +57,8 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
     const montarCapas = () => {
       if (m.getSource('zonas')) return;
       registrarTramas(m);
+      const css = getComputedStyle(document.documentElement);
+
       m.addSource('zonas', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
 
       // Base tenue: da color al polígono sin competir con la trama.
@@ -56,7 +66,7 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
         id: 'zonas-base', type: 'fill', source: 'zonas',
         paint: {
           'fill-color': EXPR_COLOR,
-          'fill-opacity': ['case', ['boolean', ['feature-state', 'sel'], false], 0.20, 0.07],
+          'fill-opacity': ['case', ['boolean', ['feature-state', 'sel'], false], 0.34, 0.18],
         },
       });
 
@@ -66,7 +76,7 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
         id: 'zonas-relleno', type: 'fill', source: 'zonas',
         paint: {
           'fill-pattern': EXPR_TRAMA,
-          'fill-opacity': ['case', ['boolean', ['feature-state', 'sel'], false], 0.95, 0.55],
+          'fill-opacity': ['case', ['boolean', ['feature-state', 'sel'], false], 1, 0.82],
         },
       });
 
@@ -74,25 +84,24 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
         id: 'zonas-borde', type: 'line', source: 'zonas',
         paint: {
           'line-color': EXPR_COLOR,
-          'line-width': ['case', ['boolean', ['feature-state', 'sel'], false], 2, 0.8],
-          'line-opacity': ['case', ['boolean', ['feature-state', 'sel'], false], 1, 0.65],
+          'line-width': ['case', ['boolean', ['feature-state', 'sel'], false], 2.6, 1.3],
+          'line-opacity': ['case', ['boolean', ['feature-state', 'sel'], false], 1, 0.9],
         },
       });
 
       // Los rótulos del mapa no pueden usar var(): MapLibre pinta en WebGL,
-      // no en CSS. Se leen los tokens computados en el momento de montar.
-      const css = getComputedStyle(document.documentElement);
+      // no en CSS. Se reusan los tokens ya leídos arriba.
       m.addLayer({
         id: 'zonas-rotulo', type: 'symbol', source: 'zonas',
         layout: {
           'text-field': ['concat', ['get', 'nombre'], '  ', ['to-string', ['get', 'iri']]],
           'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
-          'text-size': 11, 'text-letter-spacing': 0.08, 'text-anchor': 'center',
+          'text-size': 11.5, 'text-letter-spacing': 0.08, 'text-anchor': 'center',
         },
         paint: {
           'text-color': css.getPropertyValue('--papel').trim() || '#ECEAEE',
           'text-halo-color': css.getPropertyValue('--abismo').trim() || '#131315',
-          'text-halo-width': 1.6,
+          'text-halo-width': 1.9,
         },
       });
 
@@ -166,7 +175,8 @@ function Ondas({ datos, mapa }: { datos: GeoResp | null; mapa: React.RefObject<m
       const criticas = datos.features.filter((f) => f.properties.banda === 'rojo' || f.properties.banda === 'naranja');
       el.innerHTML = criticas.map((f) => {
         const p = m.project(f.properties.centro as any);
-        const color = f.properties.banda === 'rojo' ? '#E5533D' : '#E8A33D';
+        const cssv = getComputedStyle(document.documentElement);
+        const color = cssv.getPropertyValue(f.properties.banda === 'rojo' ? '--critico' : '--alerta').trim();
         return `<svg style="position:absolute;left:${p.x - 60}px;top:${p.y - 60}px;pointer-events:none" width="120" height="120">
           <circle class="onda" cx="60" cy="60" r="22" fill="none" stroke="${color}" stroke-width="1.5"/>
           <circle class="onda" cx="60" cy="60" r="22" fill="none" stroke="${color}" stroke-width="1" style="animation-delay:.8s"/>

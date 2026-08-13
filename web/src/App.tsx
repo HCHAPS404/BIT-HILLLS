@@ -105,51 +105,44 @@ export default function App() {
       {/* ─── BARRA SUPERIOR ─── */}
       {/* En el flujo, no absolute: si se parte en dos filas el HUD
           no tiene que adivinar un top en píxeles. */}
-      <header className="barra-sup">
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--esp-4)' }}>
-          <h1 style={{ fontSize: 'var(--texto-xl)', fontWeight: 800, letterSpacing: '-0.03em', margin: 0 }}>MAREA</h1>
-          <span className="rotulo" style={{ maxWidth: 210, lineHeight: 1.3 }}>{t.subtitulo}</span>
+      <header className="barra-sup" role="banner">
+        <div className="barra-marca">
+          <span className="barra-marca-glifo" aria-hidden>M</span>
+          <div className="barra-marca-txt">
+            <h1>MAREA</h1>
+            <small>{t.marcaSub}</small>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 'var(--esp-3)', alignItems: 'center', flexWrap: 'wrap', marginLeft: 'auto' }}>
-          <span className="badge badge-sin-calibrar">{t.sinCalibrar}</span>
-          {meta && (
-            <span className={`badge ${meta.simulado ? 'badge-simulado' : 'badge-vivo'}`}>
-              {meta.simulado ? t.simuladoLargo : t.vivo}
-            </span>
-          )}
-          {meta?.degradado && <span className="badge badge-simulado latido">{t.degradado}</span>}
-          {recalc && <span className="badge badge-vivo latido">{t.recalculando}</span>}
+        <div className="barra-estado">
+          <span className="rotulo">{t.sinCalibrar}</span>
+          <span className={`barra-estado-nombre ${meta?.simulado ? 'es-simulado' : ''} ${recalc ? 'latido' : ''}`}>
+            {meta?.degradado ? t.degradado : (meta?.simulado ? t.simuladoLargo : t.vivo)}
+          </span>
+        </div>
 
-          <select value={escenario} aria-label={t.enVivo} onChange={(e) => setEscenario(e.target.value)}
-            style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)', letterSpacing: '0.04em' }}>
+        <label className="barra-campo">
+          <span className="rotulo">{t.escenario}</span>
+          <select value={escenario} aria-label={t.escenario} onChange={(e) => setEscenario(e.target.value)}>
             <option value="">{t.enVivo}</option>
             {escenarios.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}
           </select>
+        </label>
 
-          <select value={temporada} aria-label={t.tempAlta} onChange={(e) => setTemporada(e.target.value as any)}
-            style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)', letterSpacing: '0.04em' }}>
+        <div className="barra-acciones">
+          <select value={temporada} aria-label={t.tempAlta} onChange={(e) => setTemporada(e.target.value as any)}>
             <option value="alta">{t.tempAlta}</option>
             <option value="media">{t.tempMedia}</option>
             <option value="baja">{t.tempBaja}</option>
           </select>
-
-          <button onClick={() => setIdioma(idioma === 'es' ? 'en' : 'es')}
-            style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)', letterSpacing: '0.08em' }}>
+          <button type="button" onClick={() => setIdioma(idioma === 'es' ? 'en' : 'es')}>
             {idioma === 'es' ? 'EN' : 'ES'}
           </button>
-
-          {/* Modo día / noche — un puente de barco hace exactamente esto. */}
-          <button onClick={() => setTema(tema === 'noche' ? 'dia' : 'noche')}
-            aria-label={tema === 'noche' ? t.modoDia : t.modoNoche}
-            style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)', letterSpacing: '0.08em' }}>
-            {tema === 'noche' ? '\u25D1 ' + t.dia : '\u25D0 ' + t.noche}
+          <button type="button" onClick={() => setTema(tema === 'noche' ? 'dia' : 'noche')}
+            aria-label={tema === 'noche' ? t.modoDia : t.modoNoche}>
+            {tema === 'noche' ? t.dia : t.noche}
           </button>
-
-          <button
-            onClick={() => setModoPitch(true)}
-            aria-label={t.modoPitch}
-            style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)', letterSpacing: '0.08em', color: 'var(--acento)' }}>
+          <button type="button" className="barra-pitch" onClick={() => setModoPitch(true)} aria-label={t.modoPitch}>
             {t.pitch}
           </button>
         </div>

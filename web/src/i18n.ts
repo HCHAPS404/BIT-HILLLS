@@ -9,6 +9,9 @@ export type Idioma = 'es' | 'en';
 export const T = {
   es: {
     subtitulo: 'Alerta temprana de inundación · corredor turístico de Cartagena',
+    marcaSub: 'alerta temprana · Cartagena',
+    origen: 'origen',
+    escenario: 'escenario',
     sinCalibrar: 'sin calibrar · v0.1',
     simulado: 'simulación',
     vivo: 'datos en vivo',
@@ -56,6 +59,9 @@ export const T = {
   },
   en: {
     subtitulo: 'Flood early warning · Cartagena tourist corridor',
+    marcaSub: 'early warning · Cartagena',
+    origen: 'source',
+    escenario: 'scenario',
     sinCalibrar: 'uncalibrated · v0.1',
     simulado: 'simulation',
     vivo: 'live data',

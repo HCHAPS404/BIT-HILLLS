@@ -10,6 +10,8 @@ import { RelojMarea } from './components/RelojMarea';
 import { ContadorVER } from './components/ContadorVER';
 import { PanelSupuestos } from './components/PanelSupuestos';
 import { Tornado } from './components/Tornado';
+import { Cartucho } from './components/Cartucho';
+import { Sparkline } from './components/Sparkline';
 import {
   getZonas, getRiesgo, getEscenarios, simular,
   COLOR_BANDA, copCorto, type GeoResp, type DetalleZona,
@@ -37,7 +39,16 @@ export default function App() {
   const [recalc, setRecalc] = useState(false);
   const [idioma, setIdioma] = useState<Idioma>('es');
   const [error, setError] = useState<string | null>(null);
+  // Modo día/noche. Arranca en noche: es un instrumento, y se recuerda.
+  const [tema, setTema] = useState<'noche' | 'dia'>(
+    () => (localStorage.getItem('marea:tema') as 'noche' | 'dia') ?? 'noche',
+  );
   const t = T[idioma];
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-tema', tema);
+    localStorage.setItem('marea:tema', tema);
+  }, [tema]);
 
   useEffect(() => { getEscenarios().then((r) => setEscenarios(r.escenarios)).catch(() => {}); }, []);
 
@@ -70,7 +81,7 @@ export default function App() {
   return (
     <div className="layout">
       <div className="capa-mapa">
-        <MapaRiesgo datos={geo} seleccion={sel} onSeleccion={setSel} />
+        <MapaRiesgo datos={geo} seleccion={sel} onSeleccion={setSel} tema={tema} />
       </div>
 
       {/* ─── BARRA SUPERIOR ─── */}
@@ -109,6 +120,13 @@ export default function App() {
             style={{ fontSize: 10, padding: '4px 8px', letterSpacing: '0.1em' }}>
             {idioma === 'es' ? 'EN' : 'ES'}
           </button>
+
+          {/* Modo día / noche — un puente de barco hace exactamente esto. */}
+          <button onClick={() => setTema(tema === 'noche' ? 'dia' : 'noche')}
+            title={tema === 'noche' ? t.modoDia : t.modoNoche}
+            style={{ fontSize: 10, padding: '4px 8px', letterSpacing: '0.1em' }}>
+            {tema === 'noche' ? '\u25D1 ' + t.dia : '\u25D0 ' + t.noche}
+          </button>
         </div>
       </header>
 
@@ -131,10 +149,21 @@ export default function App() {
         </div>
       )}
 
+      {meta && (
+        <Cartucho
+          fuente={meta.fuente}
+          escenarioNombre={escenarios.find((e) => e.id === escenario)?.nombre}
+          generado={meta.generado}
+          version={meta.version_modelo}
+          zonas={geo?.features.length ?? 0}
+          establecimientos={geo?.features.reduce((a, f) => a + f.properties.establecimientos, 0) ?? 0}
+        />
+      )}
+
       {/* ─── HUD IZQUIERDA · ranking de zonas ─── */}
       <aside className="hud hud-izq">
         <div className="panel milimetrado" style={{ padding: 10 }}>
-          <div className="rotulo" style={{ color: 'var(--cian)', marginBottom: 8 }}>{t.zonas}</div>
+          <div className="rotulo" style={{ color: 'var(--acento)', marginBottom: 8 }}>{t.zonas}</div>
 
           {!geo && !error && <Esqueleto n={6} alto={30} />}
 
@@ -146,22 +175,24 @@ export default function App() {
             const p = f.properties;
             const activo = p.id === sel;
             return (
-              <button key={p.id} onClick={() => setSel(p.id)}
+              <button key={p.id} onClick={() => setSel(p.id)} className="fila-zona"
                 style={{
-                  display: 'block', width: '100%', textAlign: 'left', padding: '7px 8px', marginBottom: 5,
+                  display: 'block', width: '100%', textAlign: 'left',
+                  paddingBlock: 8, marginBottom: 6,
                   background: activo ? 'var(--abismo)' : 'transparent',
                   borderColor: activo ? COLOR_BANDA[p.banda] : 'var(--sonda)',
                 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 6 }}>
                   <span style={{ fontSize: 12, fontFamily: 'var(--display)', color: 'var(--papel)' }}>
                     {p.nombre}
-                    {p.es_turistica && <span style={{ color: 'var(--cian)', fontSize: 9 }}> ◆</span>}
+                    {p.es_turistica && <span style={{ color: 'var(--acento)', fontSize: 9 }}> ◆</span>}
                   </span>
                   <span className="num" style={{ fontSize: 15, fontWeight: 700, color: COLOR_BANDA[p.banda] }}>
                     {p.iri.toFixed(0)}
                   </span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 3, gap: 8 }}>
+                  <Sparkline valores={p.serie_iri ?? []} color={COLOR_BANDA[p.banda]} />
                   <span className="rotulo" style={{ fontSize: 8.5 }}>{p.establecimientos} est.</span>
                   <span className="num rotulo" style={{ fontSize: 9, color: p.ver_cop > 0 ? 'var(--alerta)' : 'var(--papel-fant)' }}>
                     {copCorto(p.ver_cop)}
@@ -181,7 +212,7 @@ export default function App() {
       <aside className="hud hud-der">
         {cargandoDetalle && !detalle && (
           <div className="panel" style={{ padding: 11 }}>
-            <div className="rotulo" style={{ color: 'var(--cian)', marginBottom: 9 }}>{t.cargando}</div>
+            <div className="rotulo" style={{ color: 'var(--acento)', marginBottom: 9 }}>{t.cargando}</div>
             <div className="esqueleto" style={{ height: 200, marginBottom: 9 }} />
             <Esqueleto n={4} />
           </div>
@@ -211,7 +242,7 @@ export default function App() {
                    ['O', detalle.pico.componentes.O, t.cO], ['S', detalle.pico.componentes.S, t.cS]] as const).map(([k, v, lbl]) => (
                   <div key={k}>
                     <div className="rotulo" style={{ fontSize: 8 }}>{k} · {lbl}</div>
-                    <div className="num" style={{ fontSize: 14, fontWeight: 700, color: 'var(--cian)' }}>{v.toFixed(2)}</div>
+                    <div className="num" style={{ fontSize: 14, fontWeight: 700, color: 'var(--acento)' }}>{v.toFixed(2)}</div>
                   </div>
                 ))}
               </div>

@@ -59,7 +59,7 @@ export function PanelSupuestos({ onCambio, verTotal, recalculando }: Props) {
   return (
     <div className="panel milimetrado" style={{ padding: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-        <div className="rotulo" style={{ color: 'var(--cian)' }}>supuestos del modelo</div>
+        <div className="rotulo" style={{ color: 'var(--acento)' }}>supuestos del modelo</div>
         <button onClick={reset} style={{ fontSize: 9, padding: '2px 6px', letterSpacing: '0.1em' }}>RESET</button>
       </div>
 
@@ -72,8 +72,8 @@ export function PanelSupuestos({ onCambio, verTotal, recalculando }: Props) {
           <button key={g} onClick={() => setGrupo(g)}
             style={{
               fontSize: 9, padding: '4px 9px', letterSpacing: '0.12em', textTransform: 'uppercase',
-              borderColor: grupo === g ? 'var(--cian)' : 'var(--sonda)',
-              color: grupo === g ? 'var(--cian)' : 'var(--papel-fant)',
+              borderColor: grupo === g ? 'var(--acento)' : 'var(--sonda)',
+              color: grupo === g ? 'var(--acento)' : 'var(--papel-fant)',
             }}>
             {g}
           </button>
@@ -87,8 +87,8 @@ export function PanelSupuestos({ onCambio, verTotal, recalculando }: Props) {
           return (
             <div key={m.key} style={{ marginBottom: 13 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                <span style={{ fontSize: 11, color: tocado ? 'var(--cian)' : 'var(--papel)' }}>{m.label}</span>
-                <span className="num" style={{ fontSize: 11, color: tocado ? 'var(--cian)' : 'var(--papel-tenue)', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 11, color: tocado ? 'var(--acento)' : 'var(--papel)' }}>{m.label}</span>
+                <span className="num" style={{ fontSize: 11, color: tocado ? 'var(--acento)' : 'var(--papel-tenue)', whiteSpace: 'nowrap' }}>
                   {m.unidad === 'COP' ? copCorto(v) : v.toLocaleString('es-CO', { maximumFractionDigits: 2 })}
                   {m.unidad && m.unidad !== 'COP' ? ` ${m.unidad}` : ''}
                 </span>

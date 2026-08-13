@@ -193,6 +193,12 @@ export function aGeoJSON(r: Resultado) {
         poblacion_expuesta: z.zona.poblacion_expuesta,
         establecimientos: Object.values(z.zona.establecimientos).reduce((a, b) => a + b, 0),
         centro: [z.zona.lon, z.zona.lat],
+        /**
+         * 24 h de IRI redondeado, para el sparkline de la lista de zonas.
+         * Enteros a propósito: el ranking necesita TENDENCIA, no precisión —
+         * y así el GeoJSON no engorda (6 zonas × 24 enteros).
+         */
+        serie_iri: z.serie.slice(0, 24).map((p) => Math.round(p.iri)),
       },
     })),
   };

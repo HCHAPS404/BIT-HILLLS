@@ -30,6 +30,9 @@ export const T = {
     sinZonas: 'No hay zonas evaluadas. Revisa que la API esté corriendo en :8787.',
     sinDetalle: 'sin lectura de esta zona',
     sinDetalleAyuda: 'La API no devolvió la serie horaria. Elige otra zona o revisa /api/salud.',
+    dia: 'DÍA', noche: 'NOCHE',
+    modoDia: 'Cambiar a modo día (carta impresa)',
+    modoNoche: 'Cambiar a modo noche (instrumento de puente)',
   },
   en: {
     subtitulo: 'Flood early warning · Cartagena tourist corridor',
@@ -54,5 +57,8 @@ export const T = {
     sinZonas: 'No zones evaluated. Check the API is running on :8787.',
     sinDetalle: 'no reading for this zone',
     sinDetalleAyuda: 'The API returned no hourly series. Pick another zone or check /api/salud.',
+    dia: 'DAY', noche: 'NIGHT',
+    modoDia: 'Switch to day mode (printed chart)',
+    modoNoche: 'Switch to night mode (bridge instrument)',
   },
 } as const;

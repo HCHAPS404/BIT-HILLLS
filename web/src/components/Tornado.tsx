@@ -39,7 +39,7 @@ export function Tornado({ filas }: { filas: Fila[] }) {
   if (!utiles.length) {
     return (
       <div className="panel" style={{ padding: 11 }}>
-        <div className="rotulo" style={{ color: 'var(--cian)' }}>sensibilidad</div>
+        <div className="rotulo" style={{ color: 'var(--acento)' }}>sensibilidad</div>
         <div className="rotulo" style={{ marginTop: 6, textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5 }}>
           Sin interrupción prevista, el VER es 0 y ningún supuesto lo mueve.
           Cambia a un escenario con aguacero para ver de qué depende el número.
@@ -55,7 +55,7 @@ export function Tornado({ filas }: { filas: Fila[] }) {
   return (
     <div className="panel milimetrado" style={{ padding: 11 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <div className="rotulo" style={{ color: 'var(--cian)' }}>de qué depende el número</div>
+        <div className="rotulo" style={{ color: 'var(--acento)' }}>de qué depende el número</div>
         <span className="rotulo" style={{ fontSize: 8.5 }}>±30 %</span>
       </div>
 

@@ -10,7 +10,8 @@
  * forma de que el jurado recuerde cuál era el nuestro tres horas después.
  *
  * REGLAS QUE NO SE ROMPEN:
- *   1. border-radius máximo 2px. Los instrumentos tienen esquinas rectas.
+ *   1. Radios del sistema de la Plataforma Psicológica (6/8/12/pill).
+ *      Los controles van en píldora; las filas densas, en radio suave.
  *   2. Cero sombras. La jerarquía se hace con líneas de 1px y contraste.
  *   3. Todo número que sea DATO va en monoespaciada con tabular-nums.
  *      Los dígitos no bailan al actualizarse.
@@ -21,39 +22,97 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
+/**
+ * DOS MODOS, Y NO SON "CLARO / OSCURO" GENÉRICOS.
+ *
+ * Un puente de barco alterna entre MODO DÍA y MODO NOCHE — es práctica real
+ * de navegación, no preferencia de gusto. Y las cartas náuticas de papel se
+ * imprimen en crema con tinta azul marino.
+ *
+ *   NOCHE (por defecto) → instrumento de puente: soporte abismo, tinta clara
+ *   DÍA                 → la carta impresa: papel crema, tinta azul marino
+ *
+ * Los roles NO se invierten arbitrariamente: `--papel` es siempre la tinta y
+ * `--abismo` siempre el soporte. Por eso un solo juego de variables sirve
+ * para los dos modos sin tocar un solo componente.
+ */
+
+/**
+ * PRINCIPIO DE COLOR: LA SATURACIÓN ES INFORMACIÓN, NO DECORACIÓN.
+ *
+ * El terreno es cálido y desaturado — morado apagado, lavanda, grises con
+ * tinte violeta. Nada del chasis compite por atención.
+ *
+ * La escala de alerta es lo ÚNICO saturado de la interfaz. Por eso una zona
+ * en rojo salta de inmediato: no porque el rojo sea fuerte, sino porque todo
+ * lo demás decidió no serlo. Si el chasis también gritara, el rojo sería una
+ * voz más en una habitación ruidosa.
+ *
+ * Regla operativa: si un color no codifica severidad, va desaturado.
+ */
+
+:root, [data-tema='noche'] {
+  /* ── Instrumento de puente, de noche: negro carbón NEUTRO ──
+     Sin tinte violeta en el chasis. El carbón es acromático a propósito:
+     deja que el lavanda del acento y la escala de alerta sean lo único
+     con matiz en toda la pantalla. */
+  --abismo:      #131315;   /* soporte */
+  --profundo:    #1B1B1E;   /* superficies */
+  --sonda:       #2B2B2F;   /* bordes, retícula */
+  --sonda-alta:  #3D3D43;   /* bordes activos */
+  --papel:       #ECEAEE;   /* tinta */
+  --papel-tenue: #9E9CA3;
+  --papel-fant:  #6B696F;
+
+  /* ── Escala de alerta: lo único saturado ── */
+  --seco:    #7CC3A5;
+  --vigila:  #D7B877;
+  --alerta:  #E29472;
+  --critico: #E0574A;
+
+  --acento: #B9A6DD;   /* lavanda: dato vivo, selección */
+  --marea:  #8A76C4;
+}
+
+[data-tema='dia'] {
+  /* ── La carta impresa ── */
+  --abismo:      #F4F1F6;
+  --profundo:    #FDFCFE;
+  --sonda:       #E7E2EA;
+  --sonda-alta:  #CFC8D6;
+  --papel:       #242128;
+  --papel-tenue: #625C68;
+  --papel-fant:  #928A99;
+
+  /* Mismos matices, oscurecidos para contrastar sobre papel. */
+  --seco:    #397A61;
+  --vigila:  #8E6B22;
+  --alerta:  #C56B45;
+  --critico: #AE3623;
+
+  --acento: #6F5AA8;
+  --marea:  #5B4B91;
+}
+
 :root {
-  /* ── Carta náutica de noche ── */
-  --abismo:      #0A1420;   /* fondo base */
-  --profundo:    #0F1E2E;   /* superficies */
-  --sonda:       #16283A;   /* bordes, retícula */
-  --sonda-alta:  #1F3A52;   /* bordes activos */
-  --papel:       #F2EDE3;   /* texto principal: papel de carta, NO blanco puro */
-  --papel-tenue: #8FA3B5;
-  --papel-fant:  #4A5F73;
-
-  /* ── Escala de alerta, tomada de cartas de marea, no de Bootstrap ── */
-  --seco:    #6FBF73;
-  --vigila:  #E8C34D;
-  --alerta:  #E8A33D;
-  --critico: #E5533D;
-
-  --cian:  #4EC9C0;   /* acento de dato vivo */
-  --marea: #3B82C4;
-
   --linea: 1px solid var(--sonda);
-  --linea-viva: 1px solid var(--cian);
+  --linea-viva: 1px solid var(--acento);
 
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
   --display: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
 
-  --r: 2px;  /* el único radio permitido */
+  /* Radios tomados del sistema de la Plataforma Psicológica. */
+  --r-sm: 6px;
+  --r: 8px;
+  --r-lg: 12px;
+  --r-pill: 999px;
 }
 
 * { box-sizing: border-box; }
 
 html, body, #root {
   margin: 0; padding: 0; height: 100%;
-  background: var(--abismo);
+  background-color: var(--abismo);
   color: var(--papel);
   font-family: var(--display);
   -webkit-font-smoothing: antialiased;
@@ -91,9 +150,11 @@ html, body, #root {
 }
 
 .panel {
-  background: var(--profundo);
+  /* background-color, NO el atajo `background`: el atajo resetea
+     background-image y borraba la retícula de .milimetrado. */
+  background-color: var(--profundo);
   border: var(--linea);
-  border-radius: var(--r);
+  border-radius: var(--r-lg);
   position: relative;
 }
 
@@ -101,7 +162,8 @@ html, body, #root {
 .simulado {
   background-image: repeating-linear-gradient(
     45deg, transparent, transparent 6px,
-    rgba(232, 163, 61, 0.10) 6px, rgba(232, 163, 61, 0.10) 12px
+    color-mix(in srgb, var(--vigila) 14%, transparent) 6px,
+    color-mix(in srgb, var(--vigila) 14%, transparent) 12px
   );
 }
 
@@ -110,14 +172,14 @@ html, body, #root {
   font-size: 9px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 3px 7px;
+  padding: 3px 9px;
   border: 1px solid currentColor;
-  border-radius: var(--r);
+  border-radius: var(--r-pill);
   display: inline-block;
 }
 .badge-sin-calibrar { color: var(--alerta); }
 .badge-simulado     { color: var(--vigila); }
-.badge-vivo         { color: var(--cian); }
+.badge-vivo         { color: var(--acento); }
 
 /* Onda literal en el agua cuando entra una alerta */
 @keyframes onda {
@@ -134,19 +196,32 @@ html, body, #root {
 
 button, input, select {
   font-family: var(--mono);
-  border-radius: var(--r);
-  background: var(--abismo);
+  background-color: var(--abismo);
   color: var(--papel);
   border: var(--linea);
 }
-button { cursor: pointer; transition: border-color 120ms, color 120ms; }
-button:hover { border-color: var(--cian); color: var(--cian); }
 
-input[type="range"] { accent-color: var(--cian); background: transparent; border: none; }
+/* Controles en píldora, como en la Plataforma Psicológica. */
+button, select {
+  border-radius: var(--r-pill);
+  padding-inline: 12px;
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+button:hover, select:hover { border-color: var(--acento); color: var(--acento); }
+button:focus-visible, select:focus-visible {
+  outline: 2px solid var(--acento); outline-offset: 2px;
+}
+
+/* Las filas del ranking son superficies, no píldoras: con radio de píldora
+   una lista densa se vuelve ilegible. Radio suave y ya. */
+.fila-zona { border-radius: var(--r); padding-inline: 10px; }
+
+input[type="range"] { accent-color: var(--acento); background: transparent; border: none; }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--abismo); }
-::-webkit-scrollbar-thumb { background: var(--sonda-alta); border-radius: 0; }
+::-webkit-scrollbar-thumb { background: var(--sonda-alta); border-radius: var(--r-pill); }
 
 /* La UI nunca desborda horizontalmente */
 .scroll-x { overflow-x: auto; }
@@ -175,8 +250,60 @@ input[type="range"] { accent-color: var(--cian); background: transparent; border
   position: absolute; top: 0; left: 0; right: 0; z-index: 12;
   display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
   padding: 10px 14px;
-  background: linear-gradient(180deg, rgba(10,20,32,.96), rgba(10,20,32,.72) 70%, transparent);
+  /* Degradado derivado del token, para que siga al modo día/noche. */
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--abismo) 96%, transparent),
+    color-mix(in srgb, var(--abismo) 74%, transparent) 70%,
+    transparent
+  );
   border-bottom: var(--linea);
+}
+
+/**
+ * NO transicionar background-color/color de forma global.
+ *
+ * Chromium NO vuelve a disparar una transición cuando el valor viene de una
+ * var() que cambia en un ancestro: el elemento se queda pintado con el color
+ * viejo aunque la variable ya resolvió al nuevo. Es exactamente lo que pasaba
+ * al cambiar de modo — los tokens cambiaban y los paneles seguían oscuros.
+ *
+ * El cambio de modo es instantáneo a propósito. Solo se transiciona lo
+ * interactivo, que sí cambia por estado del elemento y no por el tema.
+ */
+button, select, input, .fila-zona {
+  transition: border-color 140ms ease, color 140ms ease;
+}
+
+/* ─── MARCO DE INSTRUMENTO ───────────────────────────────
+   Marcas de registro en las esquinas, como una plancha de impresión o el
+   bisel de un instrumento. Es lo que separa "tarjeta de dashboard" de
+   "placa de instrumento", y cuesta cuatro pseudo-elementos. */
+.marco { position: relative; border-radius: var(--r-lg); }
+
+/* ─── CARTUCHO (bloque de título de carta náutica) ─── */
+.cartucho {
+  position: absolute; left: 12px; bottom: 12px; z-index: 11;
+  width: 224px; padding: 13px 14px;
+  border-radius: var(--r-lg);
+  background-color: color-mix(in srgb, var(--profundo) 94%, transparent);
+  border: var(--linea);
+  backdrop-filter: blur(2px);
+}
+.cartucho-x {
+  position: absolute; top: 5px; right: 6px;
+  border: none; background: none; color: var(--papel-fant);
+  font-size: 14px; line-height: 1; padding: 0 5px;
+}
+.cartucho-x:hover { color: var(--critico); }
+.cartucho-cerrado {
+  position: absolute; left: 12px; bottom: 12px; z-index: 11;
+  padding: 6px 12px; background-color: var(--profundo); border: var(--linea);
+  border-radius: var(--r-pill);
+}
+
+@media (max-width: 900px) {
+  .cartucho, .cartucho-cerrado { position: static; width: auto; margin: 9px 9px 0; }
 }
 
 @media (max-width: 900px) {
@@ -203,6 +330,7 @@ input[type="range"] { accent-color: var(--cian); background: transparent; border
 /* ── Esqueleto de carga: barra de sondaje recorriendo, no un spinner ── */
 @keyframes sondaje { 0% { background-position: -180% 0 } 100% { background-position: 280% 0 } }
 .esqueleto {
+  border-radius: var(--r-sm);
   background: linear-gradient(90deg, var(--sonda) 0%, var(--sonda-alta) 45%, var(--sonda) 90%);
   background-size: 220% 100%;
   animation: sondaje 1.25s linear infinite;

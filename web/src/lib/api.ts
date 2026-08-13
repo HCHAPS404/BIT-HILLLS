@@ -12,6 +12,8 @@ export interface PropsZona {
   ver_cop: number; horas_interrupcion: number;
   ventana_critica: { desde: string; hasta: string } | null;
   poblacion_expuesta: number; establecimientos: number; centro: [number, number];
+  /** 24 h de IRI redondeado, para el sparkline del ranking */
+  serie_iri?: number[];
 }
 
 export interface GeoResp {
@@ -63,7 +65,7 @@ export const simular = (body: { overrides?: any; escenario?: string; temporada?:
   });
 
 export const COLOR_BANDA: Record<Banda, string> = {
-  verde: '#6FBF73', amarillo: '#E8C34D', naranja: '#E8A33D', rojo: '#E5533D',
+  verde: 'var(--seco)', amarillo: 'var(--vigila)', naranja: 'var(--alerta)', rojo: 'var(--critico)',
 };
 
 export const cop = (n: number) =>

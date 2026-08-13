@@ -29,11 +29,11 @@ const radio = (d: number) => R_INT + Math.max(0, Math.min(1, d)) * (R_EXT - R_IN
 
 /** R (0–1) → color. Escala de carta de marea, no de Bootstrap. */
 function tinte(r: number): string {
-  if (r >= 0.75) return '#E5533D';
-  if (r >= 0.50) return '#E8A33D';
-  if (r >= 0.25) return '#E8C34D';
-  if (r >= 0.08) return '#3B82C4';
-  return '#1F3A52';
+  if (r >= 0.75) return 'var(--critico)';
+  if (r >= 0.50) return 'var(--alerta)';
+  if (r >= 0.25) return 'var(--vigila)';
+  if (r >= 0.08) return 'var(--marea)';
+  return 'var(--sonda-alta)';
 }
 
 function arco(h0: number, h1: number, rIn: number, rOut: number) {
@@ -72,28 +72,28 @@ export function RelojMarea({ serie, ventanaCritica, pico, simulado }: Props) {
       <svg viewBox="0 0 300 300" width="100%" style={{ display: 'block', maxWidth: 340, margin: '0 auto' }}>
         <defs>
           <radialGradient id="fondoDial">
-            <stop offset="0%" stopColor="#0F1E2E" />
-            <stop offset="100%" stopColor="#0A1420" />
+            <stop offset="0%" stopColor="var(--profundo)" />
+            <stop offset="100%" stopColor="var(--abismo)" />
           </radialGradient>
           {simulado && (
             <pattern id="rayado" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
               <rect width="8" height="8" fill="none" />
-              <line x1="0" y1="0" x2="0" y2="8" stroke="#E8C34D" strokeWidth="2" opacity="0.16" />
+              <line x1="0" y1="0" x2="0" y2="8" stroke="var(--vigila)" strokeWidth="2" opacity="0.16" />
             </pattern>
           )}
         </defs>
 
-        <circle cx={CX} cy={CY} r={R_EXT + 16} fill="url(#fondoDial)" stroke="#16283A" />
+        <circle cx={CX} cy={CY} r={R_EXT + 16} fill="url(#fondoDial)" stroke="var(--sonda)" />
         {simulado && <circle cx={CX} cy={CY} r={R_EXT + 16} fill="url(#rayado)" />}
 
         {/* Anillos de sondaje */}
         {[R_INT, (R_INT + R_EXT) / 2, R_EXT].map((r) => (
-          <circle key={r} cx={CX} cy={CY} r={r} fill="none" stroke="#16283A" strokeWidth="1" />
+          <circle key={r} cx={CX} cy={CY} r={r} fill="none" stroke="var(--sonda)" strokeWidth="1" />
         ))}
 
         {/* Ventana crítica: sector donde lluvia y mar coinciden */}
         {hDesde !== null && hHasta !== null && hHasta > hDesde && (
-          <path d={arco(hDesde, hHasta, R_INT - 6, R_EXT + 10)} fill="#E5533D" opacity="0.14" stroke="#E5533D" strokeOpacity="0.5" strokeWidth="1" />
+          <path d={arco(hDesde, hHasta, R_INT - 6, R_EXT + 10)} fill="var(--critico)" opacity="0.14" stroke="var(--critico)" strokeOpacity="0.5" strokeWidth="1" />
         )}
 
         {/* Radios de lluvia: longitud y color = R */}
@@ -105,20 +105,20 @@ export function RelojMarea({ serie, ventanaCritica, pico, simulado }: Props) {
         })}
 
         {/* Contorno de marea */}
-        {contorno && <path d={contorno} fill="#3B82C4" fillOpacity="0.13" stroke="#4EC9C0" strokeWidth="1.5" strokeLinejoin="round" />}
+        {contorno && <path d={contorno} fill="var(--marea)" fillOpacity="0.13" stroke="var(--acento)" strokeWidth="1.5" strokeLinejoin="round" />}
 
         {/* Marcas horarias */}
         {Array.from({ length: 24 }, (_, h) => {
           const mayor = h % 6 === 0;
           const [x1, y1] = pt(h, R_EXT + 4);
           const [x2, y2] = pt(h, R_EXT + (mayor ? 13 : 8));
-          return <line key={`t${h}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke={mayor ? '#8FA3B5' : '#16283A'} strokeWidth="1" />;
+          return <line key={`t${h}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke={mayor ? 'var(--papel-tenue)' : 'var(--sonda)'} strokeWidth="1" />;
         })}
         {[0, 6, 12, 18].map((h) => {
           const [x, y] = pt(h, R_EXT + 26);
           return (
             <text key={`l${h}`} x={x} y={y} textAnchor="middle" dominantBaseline="middle"
-              fill="#4A5F73" fontFamily="'JetBrains Mono', monospace" fontSize="10" letterSpacing="1">
+              fill="var(--papel-fant)" fontFamily="'JetBrains Mono', monospace" fontSize="10" letterSpacing="1">
               {String(h).padStart(2, '0')}
             </text>
           );
@@ -127,16 +127,16 @@ export function RelojMarea({ serie, ventanaCritica, pico, simulado }: Props) {
         {/* Aguja de la hora actual */}
         {(() => {
           const [x, y] = pt(horaAhora, R_EXT + 10);
-          return <line x1={CX} y1={CY} x2={x} y2={y} stroke="#F2EDE3" strokeWidth="1" opacity="0.55" strokeDasharray="2 3" />;
+          return <line x1={CX} y1={CY} x2={x} y2={y} stroke="var(--papel)" strokeWidth="1" opacity="0.55" strokeDasharray="2 3" />;
         })()}
 
         {/* Núcleo: el IRI pico */}
-        <circle cx={CX} cy={CY} r={R_INT - 14} fill="#0A1420" stroke="#16283A" />
-        <text x={CX} y={CY - 8} textAnchor="middle" fill="#F2EDE3"
+        <circle cx={CX} cy={CY} r={R_INT - 14} fill="var(--abismo)" stroke="var(--sonda)" />
+        <text x={CX} y={CY - 8} textAnchor="middle" fill="var(--papel)"
           fontFamily="'JetBrains Mono', monospace" fontSize="30" fontWeight="700" style={{ fontVariantNumeric: 'tabular-nums' }}>
           {pico.iri.toFixed(0)}
         </text>
-        <text x={CX} y={CY + 12} textAnchor="middle" fill="#4A5F73"
+        <text x={CX} y={CY + 12} textAnchor="middle" fill="var(--papel-fant)"
           fontFamily="'JetBrains Mono', monospace" fontSize="8" letterSpacing="1.6">IRI PICO</text>
         <text x={CX} y={CY + 26} textAnchor="middle" fill={tinte(pico.componentes.R)}
           fontFamily="'JetBrains Mono', monospace" fontSize="9" letterSpacing="1.4">
@@ -146,16 +146,16 @@ export function RelojMarea({ serie, ventanaCritica, pico, simulado }: Props) {
 
       {ventanaCritica && (
         <div style={{ textAlign: 'center', marginTop: 4 }}>
-          <span className="rotulo" style={{ color: '#E5533D' }}>ventana crítica&nbsp;</span>
-          <span className="num" style={{ color: '#E5533D', fontSize: 13, fontWeight: 700 }}>
+          <span className="rotulo" style={{ color: 'var(--critico)' }}>ventana crítica&nbsp;</span>
+          <span className="num" style={{ color: 'var(--critico)', fontSize: 13, fontWeight: 700 }}>
             {ventanaCritica.desde.slice(11, 16)} – {ventanaCritica.hasta.slice(11, 16)}
           </span>
         </div>
       )}
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: 14, marginTop: 10, flexWrap: 'wrap' }}>
-        <Leyenda color="#4EC9C0" texto="radio = bloqueo de drenaje (D)" />
-        <Leyenda color="#E8A33D" texto="color = lluvia (R)" />
+        <Leyenda color="var(--acento)" texto="radio = bloqueo de drenaje (D)" />
+        <Leyenda color="var(--alerta)" texto="color = lluvia (R)" />
       </div>
     </div>
   );

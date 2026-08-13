@@ -8,6 +8,21 @@
   </head>
   <body>
     <div id="root"></div>
+    <!--
+      El modo se aplica ANTES del primer pintado. Si esperáramos al useEffect
+      de React, la página pintaría un fotograma en modo noche antes de saltar
+      a día: el clásico destello blanco/negro al cargar.
+    -->
+    <script>
+      try {
+        document.documentElement.setAttribute(
+          'data-tema',
+          localStorage.getItem('marea:tema') === 'dia' ? 'dia' : 'noche',
+        );
+      } catch (e) {
+        document.documentElement.setAttribute('data-tema', 'noche');
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

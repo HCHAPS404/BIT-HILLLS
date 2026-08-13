@@ -8,10 +8,14 @@
  * editables. Nunca se presenta como pérdida consumada.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { cop } from '../lib/api';
 
-export function ContadorVER({ valor, horas, etiqueta = 'valor expuesto en riesgo' }: { valor: number; horas: number; etiqueta?: string }) {
+export function ContadorVER({
+  valor, horas, etiqueta = 'valor expuesto en riesgo', nota, rotulo,
+}: {
+  valor: number; horas: number; etiqueta?: string; nota?: string; rotulo?: React.ReactNode;
+}) {
   const [n, setN] = useState(0);
   const desde = useRef(0);
 
@@ -37,19 +41,20 @@ export function ContadorVER({ valor, horas, etiqueta = 'valor expuesto en riesgo
 
   return (
     <div>
-      <div className="rotulo">{etiqueta}</div>
+      <div className="rotulo">{rotulo ?? etiqueta}</div>
       <div
         className="num"
         style={{
-          fontSize: 30, fontWeight: 700, lineHeight: 1.15, marginTop: 5,
+          fontSize: 'var(--texto-2xl)', fontWeight: 700, lineHeight: 1.15, marginTop: 'var(--esp-2)',
           color: activo ? 'var(--critico)' : 'var(--papel-fant)',
         }}
       >
         {cop(Math.round(n))}
       </div>
-      <div className="rotulo" style={{ marginTop: 5, textTransform: 'none', letterSpacing: '0.04em' }}>
-        {activo ? `${horas} h de interrupción · ` : 'sin interrupción prevista · '}
-        <span style={{ color: 'var(--alerta)' }}>valor esperado, supuestos editables</span>
+      <div className="rotulo" style={{ marginTop: 'var(--esp-2)', textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5 }}>
+        {nota ?? (activo
+          ? `${horas} h previstas (incluye recuperación). Valor esperado, supuestos editables.`
+          : 'Sin interrupción prevista. Valor esperado, supuestos editables.')}
       </div>
     </div>
   );

@@ -10,6 +10,10 @@
  * WhatsApp; contesta el teléfono. Fontumi iAgents hace llamadas con voces
  * reales y acento local — es el canal correcto para una alerta roja, no un
  * pegote para ganar el premio bonus.
+ *
+ * `accionRecomendada` también la usa la UI (web/src/lib/lectura.ts) para que
+ * el aviso en pantalla y el de WhatsApp digan lo mismo — si cambias una
+ * acción acá, cámbiala allá también (son el mismo texto a propósito).
  */
 
 import type { Banda, Env } from '../core/types';
@@ -51,6 +55,14 @@ const ORDEN: Record<Banda, number> = { verde: 0, amarillo: 1, naranja: 2, rojo: 
 export const aplica = (d: Destinatario, a: Aviso) =>
   d.zona_id === a.zona_id && ORDEN[a.banda] >= ORDEN[d.umbral];
 
+/** La línea que decide. Es lo que un dueño de local necesita leer. */
+export function accionRecomendada(banda: Banda): string {
+  if (banda === 'rojo') return 'Recomendado: subir inventario, avisar a huéspedes, no programar salidas.';
+  if (banda === 'naranja') return 'Recomendado: revisar drenajes y tener el inventario listo para subir.';
+  if (banda === 'amarillo') return 'Recomendado: no mover inventario todavía. Si el índice llega a 50, sí toca revisar drenajes.';
+  return 'Recomendado: no hay que mover nada. Este es el estado habitual.';
+}
+
 /** Texto de WhatsApp. Corto: se lee en la pantalla de bloqueo. */
 export function plantillaWhatsApp(a: Aviso): string {
   const emoji = a.banda === 'rojo' ? '🔴' : '🟠';
@@ -61,9 +73,7 @@ export function plantillaWhatsApp(a: Aviso): string {
     `Riesgo de inundación entre las *${hd}* y las *${hh}* de hoy.`,
     `Índice ${a.iri.toFixed(0)}/100 (sin calibrar, v0.1).`,
     '',
-    a.banda === 'rojo'
-      ? 'Recomendado: subir inventario, avisar a huéspedes, no programar salidas.'
-      : 'Recomendado: revisar drenajes y tener el inventario listo para subir.',
+    accionRecomendada(a.banda),
     '',
     'Responde BAJA para dejar de recibir avisos de esta zona.',
   ].filter(Boolean).join('\n');

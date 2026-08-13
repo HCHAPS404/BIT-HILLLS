@@ -12,7 +12,7 @@
  * 24 h en 360°, medianoche arriba, sentido horario.
  */
 
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import type { Punto } from '../lib/api';
 
 const CX = 150, CY = 150;
@@ -48,9 +48,10 @@ interface Props {
   ventanaCritica: { desde: string; hasta: string } | null;
   pico: Punto;
   simulado?: boolean;
+  rotuloVentana?: React.ReactNode;
 }
 
-export function RelojMarea({ serie, ventanaCritica, pico, simulado }: Props) {
+export function RelojMarea({ serie, ventanaCritica, pico, simulado, rotuloVentana }: Props) {
   const horas = useMemo(
     () => serie.slice(0, 24).map((p) => ({ ...p, h: Number(p.t.slice(11, 13)) })),
     [serie],
@@ -118,7 +119,7 @@ export function RelojMarea({ serie, ventanaCritica, pico, simulado }: Props) {
           const [x, y] = pt(h, R_EXT + 26);
           return (
             <text key={`l${h}`} x={x} y={y} textAnchor="middle" dominantBaseline="middle"
-              fill="var(--papel-fant)" fontFamily="'JetBrains Mono', monospace" fontSize="10" letterSpacing="1">
+              fill="var(--papel-fant)" fontFamily="'JetBrains Mono', monospace" fontSize="11" letterSpacing="0.8">
               {String(h).padStart(2, '0')}
             </text>
           );
@@ -137,23 +138,23 @@ export function RelojMarea({ serie, ventanaCritica, pico, simulado }: Props) {
           {pico.iri.toFixed(0)}
         </text>
         <text x={CX} y={CY + 12} textAnchor="middle" fill="var(--papel-fant)"
-          fontFamily="'JetBrains Mono', monospace" fontSize="8" letterSpacing="1.6">IRI PICO</text>
+          fontFamily="'JetBrains Mono', monospace" fontSize="11" letterSpacing="1">DE 100</text>
         <text x={CX} y={CY + 26} textAnchor="middle" fill={tinte(pico.componentes.R)}
-          fontFamily="'JetBrains Mono', monospace" fontSize="9" letterSpacing="1.4">
+          fontFamily="'JetBrains Mono', monospace" fontSize="11" letterSpacing="0.8">
           {pico.banda.toUpperCase()}
         </text>
       </svg>
 
       {ventanaCritica && (
-        <div style={{ textAlign: 'center', marginTop: 4 }}>
-          <span className="rotulo" style={{ color: 'var(--critico)' }}>ventana crítica&nbsp;</span>
-          <span className="num" style={{ color: 'var(--critico)', fontSize: 13, fontWeight: 700 }}>
+        <div style={{ textAlign: 'center', marginTop: 'var(--esp-2)' }}>
+          {rotuloVentana ?? <span className="rotulo" style={{ color: 'var(--critico)' }}>ventana crítica&nbsp;</span>}
+          <span className="num" style={{ color: 'var(--critico)', fontSize: 'var(--texto-md)', fontWeight: 700 }}>
             {ventanaCritica.desde.slice(11, 16)} – {ventanaCritica.hasta.slice(11, 16)}
           </span>
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 14, marginTop: 10, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--esp-5)', marginTop: 'var(--esp-4)', flexWrap: 'wrap' }}>
         <Leyenda color="var(--acento)" texto="radio = bloqueo de drenaje (D)" />
         <Leyenda color="var(--alerta)" texto="color = lluvia (R)" />
       </div>
@@ -162,7 +163,7 @@ export function RelojMarea({ serie, ventanaCritica, pico, simulado }: Props) {
 }
 
 const Leyenda = ({ color, texto }: { color: string; texto: string }) => (
-  <span className="rotulo" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+  <span className="rotulo" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--esp-2)' }}>
     <span style={{ width: 8, height: 8, background: color, display: 'inline-block' }} />
     {texto}
   </span>

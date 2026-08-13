@@ -63,7 +63,7 @@ export function Definicion({ termino, titulo, children }: Props) {
           <div style={{ fontSize: 'var(--texto-xs)', fontFamily: 'var(--mono)', color: 'var(--acento)', marginBottom: 'var(--esp-2)', lineHeight: 1.4 }}>
             {titulo}
           </div>
-          <div style={{ fontSize: 'var(--texto-sm)', lineHeight: 1.5, color: 'var(--papel)', textTransform: 'none', letterSpacing: 0 }}>
+          <div className="prosa" style={{ fontSize: 'var(--texto-sm)' }}>
             {children}
           </div>
         </div>

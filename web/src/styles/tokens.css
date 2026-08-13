@@ -108,7 +108,7 @@
   --display: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
 
   --texto-xs: 11px;
-  --texto-sm: 12px;
+  --texto-sm: 13px;
   --texto-md: 14px;
   --texto-lg: 16px;
   --texto-xl: 20px;
@@ -152,10 +152,28 @@ html, body, #root {
 .rotulo {
   font-family: var(--mono);
   font-size: var(--texto-xs);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--papel-fant);
   font-weight: 500;
+}
+
+/* Cuerpo dentro de un panel. El rótulo etiqueta; esto se lee. */
+.prosa {
+  font-family: var(--display);
+  font-size: var(--texto-md);
+  line-height: 1.55;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--papel);
+}
+.prosa-nota {
+  font-family: var(--display);
+  font-size: var(--texto-sm);
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--papel-tenue);
 }
 
 /* Papel milimetrado: retícula sutil en paneles de datos */
@@ -350,23 +368,23 @@ input[type="range"] { accent-color: var(--acento); background: transparent; bord
 }
 
 .frase-estado {
-  font-size: var(--texto-lg);
+  font-size: var(--texto-xl);
   font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.35;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
   margin: var(--esp-3) 0 0;
 }
 .frase-detalle {
-  font-size: var(--texto-sm);
+  font-size: var(--texto-md);
   line-height: 1.55;
-  margin: var(--esp-3) 0 0;
+  margin: var(--esp-4) 0 0;
   color: var(--papel);
 }
 .accion-recomendada {
-  font-size: var(--texto-sm);
+  font-size: var(--texto-md);
   line-height: 1.5;
-  margin-top: var(--esp-5);
-  padding: var(--esp-5);
+  margin-top: var(--esp-6);
+  padding: var(--esp-5) var(--esp-6);
   background-color: var(--abismo);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--papel) 9%, transparent);
   border-radius: var(--r);

@@ -54,7 +54,7 @@ export function LecturaZona({ detalle, idioma }: { detalle: DetalleZona; idioma:
         {accion}
       </div>
       {mandaAviso && (
-        <div className="rotulo" style={{ marginTop: 'var(--esp-2)', textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5 }}>
+        <div className="prosa-nota" style={{ marginTop: 'var(--esp-3)' }}>
           {t.mismoWhatsApp}
         </div>
       )}
@@ -65,18 +65,18 @@ export function LecturaZona({ detalle, idioma }: { detalle: DetalleZona; idioma:
         </details>
       )}
 
-      <div style={{ marginTop: 'var(--esp-5)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 'var(--esp-3)', marginBottom: 'var(--esp-3)' }}>
+      <div style={{ marginTop: 'var(--esp-6)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 'var(--esp-3)', marginBottom: 'var(--esp-4)' }}>
           <span className="rotulo">
             <Definicion termino="IRI" titulo={def.IRI.titulo}>{def.IRI.cuerpo}</Definicion>
             {' '}{Math.round(detalle.pico.iri)} / 100
           </span>
-          <span className="rotulo" style={{ color: 'var(--papel-tenue)', textTransform: 'none', letterSpacing: '0.03em' }}>
+          <span className="rotulo" style={{ color: 'var(--papel-tenue)', textTransform: 'none', letterSpacing: '0.04em' }}>
             {t.bandaDe[detalle.pico.banda]}
           </span>
         </div>
         <EscalaIRI iri={detalle.pico.iri} banda={detalle.pico.banda} idioma={idioma} />
-        <div className="rotulo" style={{ marginTop: 'var(--esp-3)', textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5 }}>
+        <div className="prosa-nota" style={{ marginTop: 'var(--esp-4)' }}>
           {t.iriHonesto}
         </div>
       </div>
@@ -86,17 +86,17 @@ export function LecturaZona({ detalle, idioma }: { detalle: DetalleZona; idioma:
 
 export function ComponentesZona({ detalle, idioma }: { detalle: DetalleZona; idioma: Idioma }) {
   return (
-    <div style={{ marginTop: 'var(--esp-5)', borderTop: 'var(--linea)', paddingTop: 'var(--esp-4)' }}>
+    <div style={{ marginTop: 'var(--esp-6)', borderTop: 'var(--linea)', paddingTop: 'var(--esp-5)' }}>
       {([['R', detalle.pico.componentes.R], ['D', detalle.pico.componentes.D],
          ['O', detalle.pico.componentes.O], ['S', detalle.pico.componentes.S]] as const).map(([k, v]) => {
         const { nombre, linea } = porQueComponente(k as ClaveComponente, v, idioma, detalle.pico.componentes.R);
         return (
-          <div key={k} style={{ marginBottom: 'var(--esp-4)' }}>
+          <div key={k} style={{ marginBottom: 'var(--esp-5)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 'var(--esp-3)' }}>
-              <span style={{ fontSize: 'var(--texto-sm)', color: 'var(--papel)' }}>{nombre}</span>
-              <span className="num" style={{ fontSize: 'var(--texto-sm)', color: 'var(--acento)' }}>{v.toFixed(2)}</span>
+              <span style={{ fontSize: 'var(--texto-md)', color: 'var(--papel)' }}>{nombre}</span>
+              <span className="num" style={{ fontSize: 'var(--texto-md)', color: 'var(--acento)' }}>{v.toFixed(2)}</span>
             </div>
-            <div className="rotulo" style={{ marginTop: 'var(--esp-1)', textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5 }}>
+            <div className="prosa-nota" style={{ marginTop: 'var(--esp-2)' }}>
               {linea}
             </div>
           </div>

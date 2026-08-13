@@ -226,7 +226,7 @@ export default function App() {
                   borderColor: activo ? COLOR_BANDA[p.banda] : 'var(--sonda)',
                 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 'var(--esp-3)' }}>
-                  <span style={{ fontSize: 'var(--texto-sm)', fontWeight: 600, fontFamily: 'var(--display)', color: 'var(--papel)' }}>
+                  <span style={{ fontSize: 'var(--texto-md)', fontWeight: 600, fontFamily: 'var(--display)', color: 'var(--papel)' }}>
                     {p.nombre}
                     {p.es_turistica && <span style={{ color: 'var(--acento)', fontSize: 'var(--texto-xs)' }}> ◆</span>}
                   </span>
@@ -238,7 +238,7 @@ export default function App() {
                     <span className="rotulo" style={{ fontSize: 'var(--texto-xs)' }}>/100</span>
                   </span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'var(--esp-2)', gap: 'var(--esp-4)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'var(--esp-3)', gap: 'var(--esp-4)' }}>
                   <span className="rotulo" style={{ color: COLOR_BANDA[p.banda], textTransform: 'none', letterSpacing: '0.04em' }}>
                     {t.bandaDe[p.banda]}
                   </span>
@@ -281,7 +281,7 @@ export default function App() {
             <div className={`panel ${detalle.simulado ? 'simulado' : ''}`} style={{ padding: 'var(--esp-6)' }}>
               <LecturaZona detalle={detalle} idioma={idioma} />
 
-              <div style={{ marginTop: 'var(--esp-5)', borderTop: 'var(--linea)', paddingTop: 'var(--esp-4)' }}>
+              <div style={{ marginTop: 'var(--esp-6)', borderTop: 'var(--linea)', paddingTop: 'var(--esp-5)' }}>
                 <ContadorVER
                   valor={detalle.ver_cop}
                   horas={detalle.horas_interrupcion + 2}

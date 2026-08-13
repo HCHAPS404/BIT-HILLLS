@@ -45,13 +45,13 @@ export function ContadorVER({
       <div
         className="num"
         style={{
-          fontSize: 'var(--texto-2xl)', fontWeight: 700, lineHeight: 1.15, marginTop: 'var(--esp-2)',
+          fontSize: 'var(--texto-2xl)', fontWeight: 700, lineHeight: 1.15, marginTop: 'var(--esp-3)',
           color: activo ? 'var(--critico)' : 'var(--papel-fant)',
         }}
       >
         {cop(Math.round(n))}
       </div>
-      <div className="rotulo" style={{ marginTop: 'var(--esp-2)', textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5 }}>
+      <div className="prosa-nota" style={{ marginTop: 'var(--esp-3)' }}>
         {nota ?? (activo
           ? `${horas} h previstas (incluye recuperación). Valor esperado, supuestos editables.`
           : 'Sin interrupción prevista. Valor esperado, supuestos editables.')}

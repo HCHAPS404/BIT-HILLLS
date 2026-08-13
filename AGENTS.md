@@ -21,34 +21,37 @@ cd web && npm install && npm run dev   # :5173
 
 | Rama | Estado | Dueño de facto |
 |---|---|---|
-| `main` | Base mergeada (PR #1) + deploy real en vivo + CI/CD | tronco |
-| `feat/marea-base` | 1 commit adelante de `main`: fix de mapa en blanco (`5243f1a`, re-entrancia de MapLibre en pestaña oculta) sin mergear todavía | Andres (Sidechain07) — activo, no tocar sin avisarle |
-| `feat/vision-canal` | 5 commits atrás de `main` (le falta el pulido de UI y el CI/CD). Aporta `api/src/adapters/vision.ts`, sin conectar a nada | huérfana, libre para retomar |
-| `feat/fontumi` | 5 commits atrás de `main`. Aporta `api/src/services/notify.ts`, sin conectar a nada | huérfana, libre para retomar |
+| `main` | Base mergeada (PR #1 + PR #2) + D1 activo con reportes conectados al motor + deploy real en vivo + CI/CD | tronco |
+| `feat/marea-base` | Al día con `main` (sus 2 commits pendientes ya se mergearon vía PR #2) | Andres (Sidechain07) — activo, no tocar sin avisarle |
+| `feat/vision-canal` | Atrás de `main` (le falta el pulido de UI, el CI/CD y el wiring de reportes). Aporta `api/src/adapters/vision.ts`, sin conectar a nada | huérfana, libre para retomar |
+| `feat/fontumi` | Atrás de `main` (mismo gap). Aporta `api/src/services/notify.ts`, sin conectar a nada | huérfana, libre para retomar |
 
 **Deploy (Cloudflare, cuenta `helmut.chs@gmail.com`, account id
 `e75862195de36f76657bda6bef14ec71`):**
 
-- API (Worker): `https://marea-api.marea-cartagena.workers.dev` — funcionando, CI/CD ok.
+- API (Worker): `https://marea-api.marea-cartagena.workers.dev` — funcionando, CI/CD ok, con D1 activo.
 - Web (Pages, proyecto `marea`): `https://marea-drq.pages.dev` — funcionando, CI/CD ok.
-- CI/CD: `.github/workflows/deploy.yml`, dispara en push a `main`. Secrets/variables ya están puestos en el repo de GitHub (`CLOUDFLARE_API_TOKEN` con permisos Workers Scripts:Edit + Cloudflare Pages:Edit, `CLOUDFLARE_ACCOUNT_ID`, `VITE_API`) — confirmado funcionando en el run `31725700888` (2026-08-13), ambos jobs en success. Si algo falla más adelante, probablemente sea el token expirado/rotado, no un problema del workflow.
-- D1: NO está creado (opcional, comentado en `api/wrangler.jsonc`).
+- CI/CD: `.github/workflows/deploy.yml`, dispara en push a `main`. Secrets/variables ya están puestos en el repo de GitHub (`CLOUDFLARE_API_TOKEN` con permisos Workers Scripts:Edit + Cloudflare Pages:Edit, `CLOUDFLARE_ACCOUNT_ID`, `VITE_API`) — confirmado funcionando repetidas veces el 2026-08-13. Si algo falla más adelante, probablemente sea el token expirado/rotado, no un problema del workflow.
+- D1: **creado y activo** (`database_id` en `api/wrangler.jsonc`, database name `marea`). Schema aplicado en remoto.
 
 ## Gaps de integración reales (no son solo TODOs de comentario)
 
 Verificado leyendo el código, no asumido:
 
-1. **El ciclo de reportes ciudadanos NO alimenta el motor de riesgo.**
-   `POST /api/reportes` (`api/src/index.ts`) escribe en D1 pero
-   `evaluate.ts` (líneas ~123-133) siempre usa `obstruccion_base` de la
-   zona — nunca lee la tabla `reportes`. La función que sí sabe agregar
-   reportes en una señal (`obstruccionDesdeReportes`) vive en
-   `feat/vision-canal:api/src/adapters/vision.ts` pero nadie la llama.
+1. ~~El ciclo de reportes ciudadanos no alimenta el motor de riesgo~~ —
+   **resuelto 2026-08-13.** `api/src/adapters/reportes.ts` agrega
+   reportes recientes de D1 (decaimiento exponencial, vida media 10 días)
+   y `evaluate.ts` los usa para la señal de obstrucción. Verificado
+   end-to-end en producción. `reportes` ahora tiene columnas `confianza`
+   y `pendiente_revision`, listas para que `vision-canal` las llene.
 2. **`vision.ts` (rama `feat/vision-canal`) no está conectado a nada.**
    Falta: binding `"ai": { "binding": "AI" }` en `wrangler.jsonc`, y que
    `POST /api/reportes` reciba una foto real (hoy solo acepta un
    `severidad` numérico puesto por el cliente, no una imagen) y llame
-   `clasificarCanal()`.
+   `clasificarCanal()`. Ya NO hace falta reimplementar la agregación de
+   reportes — usa `leerReportesRecientes`/`obstruccionDesdeReportes` de
+   `api/src/adapters/reportes.ts` (en `main`), no la copia que trae
+   `vision.ts` en su propia rama.
 3. **`notify.ts` (rama `feat/fontumi`) no está conectado a nada.**
    El cron `scheduled()` en `index.ts` calcula zonas críticas pero nunca
    llama a un `Notificador`. No existe endpoint para dar de alta
@@ -78,12 +81,15 @@ Verificado leyendo el código, no asumido:
 
 ## Pendiente, priorizado
 
-1. Confirmar que el CI/CD de Pages quedó funcionando (permiso del token) — ver sección Deploy arriba.
-2. Rotar el `CLOUDFLARE_API_TOKEN` si en algún momento se compartió en texto plano fuera de GitHub Secrets.
-3. Mergear `5243f1a` (fix de mapa en blanco) de `feat/marea-base` a `main` — coordinarlo con Andres, es su rama activa.
-4. Rebasar `feat/vision-canal` y `feat/fontumi` sobre `main` (están 5 commits atrás).
-5. Cerrar el gap #1 de la sección anterior: conectar `reportes` → `obstruccionDesdeReportes` → señal `obstruccion` en `evaluate.ts`. Esto es prerrequisito real para que `vision-canal` tenga sentido.
-6. Cerrar el gap #2: wiring de `vision.ts`.
-7. Cerrar el gap #3: wiring de `notify.ts` + endpoint de suscriptores.
-8. D1 (opcional): `npm run db:create` en `api/`, pegar el `database_id` en `wrangler.jsonc`, descomentar el bloque `d1_databases`.
-9. Calibración del modelo IRI contra datos de OAGRD/ERA5 (ver README, sección "Honestidad del modelo").
+1. Rotar el `CLOUDFLARE_API_TOKEN` si en algún momento se compartió en texto plano fuera de GitHub Secrets.
+2. Rebasar `feat/vision-canal` y `feat/fontumi` sobre `main` (les falta el pulido de UI, el CI/CD y el wiring de reportes ya resuelto).
+3. Cerrar el gap #2 de la sección anterior: wiring de `vision.ts` (binding AI + `POST /api/reportes` con foto real).
+4. Cerrar el gap #3: wiring de `notify.ts` + endpoint de suscriptores.
+5. Calibración del modelo IRI contra datos de OAGRD/ERA5 (ver README, sección "Honestidad del modelo").
+
+## Resuelto
+
+- ~~Deploy real (Worker + Pages) + CI/CD~~ — 2026-08-13
+- ~~D1 creado y schema aplicado~~ — 2026-08-13
+- ~~Reportes ciudadanos conectados al motor de riesgo~~ — 2026-08-13
+- ~~Fix de mapa en blanco (re-entrancia) + contraste WCAG~~ — mergeado vía PR #2, 2026-08-13

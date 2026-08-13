@@ -6,13 +6,30 @@ paginate: true
 header: '**MAREA** · CTW Hackathon Cartagena Edition 2026'
 footer: 'Misión: Cartagena Construye con IA · UNITECNAR'
 style: |
+  /* theme "uncover" trae letra grande por defecto — pensada para slides
+     con poco texto. Este deck tiene cajas con varias líneas por celda;
+     sin achicar la base, el contenido se desborda del canvas 16:9 y
+     el export a PDF lo corta en el borde inferior en vez de reflow. */
   section {
     background-color: #131315;
     color: #ECEAEE;
     font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 22px;
+  }
+  h1 {
+    font-size: 1.9em;
+  }
+  h2, h3 {
+    font-size: 1.3em;
   }
   h1, h2, h3 {
     color: #B9A6DD;
+  }
+  p, li {
+    line-height: 1.35;
+  }
+  blockquote {
+    font-size: 0.92em;
   }
   .highlight-red {
     color: #E0574A;
@@ -29,14 +46,22 @@ style: |
   .grid-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+    gap: 1.25rem;
     text-align: left;
   }
   .box {
     background: #1B1B1E;
     border: 1px solid #2B2B2F;
     border-radius: 8px;
-    padding: 1.5rem;
+    padding: 1rem 1.25rem;
+    font-size: 0.86em;
+  }
+  .box h3 {
+    font-size: 1.15em;
+    margin-top: 0;
+  }
+  .box p, .box li {
+    margin: 0.3em 0;
   }
 ---
 

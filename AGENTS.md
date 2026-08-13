@@ -104,28 +104,43 @@ duplicado a propósito, no importado.
 ## Pendiente, priorizado
 
 Todos los gaps de integración conocidos están cerrados. Lo que queda es
-trabajo de fondo, no bloqueante:
+housekeeping de seguridad y activaciones de producto que dependen del
+dashboard (no de código):
 
-1. Rotar el `CLOUDFLARE_API_TOKEN` si en algún momento se compartió en texto plano fuera de GitHub Secrets. Mismo cuidado con el Private Integration Token de Fontumi/GHL (`pit-...`) — pasó por chat, rotarlo cuando se retome.
-2. **Fontumi real: investigado a fondo el 2026-08-13, EN STANDBY por causa externa (no de código).**
-   Fontumi corre sobre **GoHighLevel** (API real: `services.leadconnectorhq.com`,
-   no `api.fontumi.co/v1` como estaba adivinado en el código — eso sigue
-   sin corregirse en `FontumiNotifier`, es lo primero que hay que
-   arreglar cuando se retome). Con un Private Integration Token con
-   scopes `contacts.readonly/write` y `conversations/message.readonly/write`,
-   **se probó el flujo completo contra la API real:** crear contacto por
-   teléfono (`POST /contacts/`, 201) → enviar mensaje
-   (`POST /conversations/messages`, type `WhatsApp`, 201). La API acepta
-   el mensaje, pero el envío real **falla** con
-   `error: "locale.whatsapp.errors.subscriptionNotActiveLocation"` — el
-   canal de WhatsApp Business no está activado/suscrito para esa cuenta.
-   Eso se resuelve en Settings → WhatsApp del dashboard de Fontumi
-   (conectar y verificar un número, típicamente vía Meta — puede tardar
-   horas o días, no es instantáneo). No es algo que el código pueda
-   arreglar. `ConsoleNotifier` sigue cubriendo el demo/pitch sin riesgo.
-3. Calibración del modelo IRI contra datos de OAGRD/ERA5 (ver README, sección "Honestidad del modelo").
-4. Opcional: guardar la foto del reporte en R2 para historial visual.
-5. `.pages.dev` de producción muestra un chunk JS de ~1 MB (aviso de Vite en el build) — no bloquea nada, pero si hay tiempo, `manualChunks` ayudaría a la carga inicial.
+1. **Rotar dos tokens que pasaron por chat en algún momento** —
+   `CLOUDFLARE_API_TOKEN` (GitHub Secret) y el Private Integration Token
+   de Fontumi/GHL (`pit-...`, Worker secret `FONTUMI_TOKEN`). Ninguno se
+   puede rotar por API: la sesión OAuth de wrangler no tiene scope de
+   gestión de tokens (confirmado, 401 en `/user/tokens/permission_groups`),
+   y los Private Integration Tokens de GoHighLevel no tienen API propia
+   de auto-rotación. Acción manual: crear uno nuevo en cada dashboard,
+   actualizar el secret correspondiente, revocar el viejo.
+2. **Fontumi real: en standby, ya no por adivinar la firma.**
+   `FontumiNotifier` ya apunta al dominio real
+   (`services.leadconnectorhq.com`, GoHighLevel detrás de Fontumi) con el
+   flujo verificado en producción: `POST /contacts/upsert` → `POST
+   /conversations/messages` (type `WhatsApp`), ambos 201. El envío real
+   falla con `subscriptionNotActiveLocation` — falta activar el canal de
+   WhatsApp Business en Settings → WhatsApp del dashboard de Fontumi
+   (típicamente vía Meta, puede tardar horas/días). Falta también
+   `FONTUMI_LOCATION_ID` como var en `wrangler.jsonc` (documentado ahí,
+   comentado a propósito — sin eso `construirNotificador()` sigue usando
+   `ConsoleNotifier` aunque el token ya esté puesto, así que no hay riesgo
+   de envíos reales por accidente). La voz (iAgents) sigue sin endpoint
+   confirmado — `voz()` falla explícito en vez de adivinar.
+3. **R2 para fotos de reportes: código listo, falta activar R2 en el
+   dashboard de Cloudflare** (gateado igual que el subdominio workers.dev,
+   sin bypass por API — confirmado con `code: 10042`). Una vez activado:
+   `npx wrangler r2 bucket create marea-reportes` y descomentar el
+   binding en `wrangler.jsonc`. El endpoint `/api/reportes` ya sabe
+   guardar la imagen si `env.REPORTES` existe, y sigue funcionando igual
+   si no existe.
+4. **Calibración del IRI: script real construido
+   (`scripts/calibrar_iri.py`), probado con datos sintéticos, sin datos
+   reales.** Se verificó por búsqueda que no existe un dataset abierto de
+   la OAGRD — solo prensa. Conseguir el dataset requiere un derecho de
+   petición formal (instrucciones exactas en el script). No se fabricó
+   una calibración falsa.
 
 ## Pitch
 
@@ -142,3 +157,6 @@ uno nuevo, generarlo de nuevo a partir de las slides.
 - ~~Clasificador de visión conectado a POST /api/reportes~~ — mergeado vía PR #3, 2026-08-13
 - ~~Fontumi conectado al cron + alta de suscriptores~~ — mergeado vía PR #5, 2026-08-13
 - ~~Todas las ramas de feature integradas a main~~ — 2026-08-13
+- ~~FontumiNotifier corregido contra la API real de GoHighLevel~~ — 2026-08-13
+- ~~Code-splitting del bundle web (manualChunks, vendor-react/vendor-maplibre)~~ — 2026-08-13
+- ~~README.md rediseñado (badges, TOC, diagrama Mermaid de arquitectura)~~ — 2026-08-13

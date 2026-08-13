@@ -107,18 +107,39 @@ export class ConsoleNotifier implements Notificador {
 }
 
 /**
- * TODO(quien tome esta rama): completar contra la API real de Fontumi One.
- * Pendiente de la cuenta sandbox. Endpoints y forma del payload salen de su
- * documentación — NO inventar la firma: si no llega la credencial, se entrega
- * con ConsoleNotifier y se dice en el pitch que la interfaz está lista.
+ * Fontumi corre sobre GoHighLevel — la API real es
+ * `services.leadconnectorhq.com`, NO `api.fontumi.co` (adivinado en una
+ * versión anterior de este archivo, nunca verificado). Verificado en
+ * producción el 2026-08-13 contra la cuenta real: crear/actualizar
+ * contacto (`POST /contacts/upsert`, 201) → enviar mensaje
+ * (`POST /conversations/messages`, type "WhatsApp", 201 = la API lo
+ * acepta). El token necesita scopes `contacts.write` y
+ * `conversations/message.write` en la integración privada.
+ *
+ * Requiere `FONTUMI_LOCATION_ID` además de `FONTUMI_TOKEN` — GoHighLevel
+ * exige el location id en cada request, no viaja en el token.
+ *
+ * VOZ (iAgents) SIGUE SIN CONFIRMAR: no encontramos un endpoint público
+ * de GoHighLevel para llamadas de voz con AI — probablemente es una
+ * capa propia de Fontumi encima de GHL, no documentada donde miramos.
+ * NO se adivina la firma: falla explícito en vez de un request que
+ * probablemente sea 404. Conectar cuando llegue la documentación real.
  */
 export class FontumiNotifier implements Notificador {
-  constructor(private token: string, private base = 'https://api.fontumi.co') {}
+  constructor(
+    private token: string,
+    private locationId: string,
+    private base = 'https://services.leadconnectorhq.com',
+  ) {}
 
-  private async post(ruta: string, cuerpo: unknown) {
+  private async request(ruta: string, cuerpo: unknown) {
     const r = await fetch(`${this.base}${ruta}`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', authorization: `Bearer ${this.token}` },
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${this.token}`,
+        version: '2021-07-28',
+      },
       body: JSON.stringify(cuerpo),
       signal: AbortSignal.timeout(10_000),
     });
@@ -126,17 +147,32 @@ export class FontumiNotifier implements Notificador {
     return r.json().catch(() => ({}));
   }
 
-  async whatsapp(d: Destinatario, msg: string) {
-    await this.post('/v1/whatsapp/send', { to: d.telefono, type: 'text', text: msg });
+  /** GoHighLevel exige un contactId — no se puede mandar solo con el teléfono. */
+  private async contactId(d: Destinatario): Promise<string> {
+    const r: any = await this.request('/contacts/upsert', {
+      locationId: this.locationId,
+      phone: d.telefono,
+      firstName: d.nombre ?? d.establecimiento ?? 'Suscriptor MAREA',
+    });
+    const id = r?.contact?.id ?? r?.id;
+    if (!id) throw new Error('fontumi: upsert de contacto no devolvió id');
+    return id;
   }
 
-  async voz(d: Destinatario, guion: string) {
-    await this.post('/v1/iagents/call', { to: d.telefono, script: guion, locale: 'es-CO' });
+  async whatsapp(d: Destinatario, msg: string) {
+    const contactId = await this.contactId(d);
+    await this.request('/conversations/messages', { type: 'WhatsApp', contactId, message: msg });
+  }
+
+  async voz(_d: Destinatario, _guion: string): Promise<void> {
+    throw new Error('FontumiNotifier.voz(): endpoint de iAgents sin confirmar, ver comentario de la clase');
   }
 }
 
 export const construirNotificador = (env: Env): Notificador =>
-  env.FONTUMI_TOKEN ? new FontumiNotifier(env.FONTUMI_TOKEN) : new ConsoleNotifier();
+  env.FONTUMI_TOKEN && env.FONTUMI_LOCATION_ID
+    ? new FontumiNotifier(env.FONTUMI_TOKEN, env.FONTUMI_LOCATION_ID)
+    : new ConsoleNotifier();
 
 /**
  * Anti-spam: máximo una alerta por zona y banda cada 6 h.

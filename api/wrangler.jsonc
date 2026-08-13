@@ -19,7 +19,18 @@
   // Clasificador de severidad de canal desde foto (api/src/adapters/vision.ts).
   "ai": { "binding": "AI" },
 
+  // Historial de fotos de reportes. Requiere activar R2 en el dashboard
+  // primero (Cloudflare lo exige, sin bypass por API) — luego:
+  //   npx wrangler r2 bucket create marea-reportes
+  // y descomentar. Sin esto, /api/reportes sigue funcionando igual, solo
+  // no archiva la imagen.
+  // "r2_buckets": [
+  //   { "binding": "REPORTES", "bucket_name": "marea-reportes" }
+  // ],
+
   "vars": {
     "TEMPORADA": "alta"
+    // FONTUMI_LOCATION_ID: "5j8a0AZYowKVN0yOJscX" — descomentar cuando se
+    // retome Fontumi (junto con el secret FONTUMI_TOKEN vía wrangler secret put).
   }
 }

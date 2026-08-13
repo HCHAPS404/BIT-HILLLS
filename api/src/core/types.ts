@@ -77,6 +77,9 @@ export interface Evaluacion {
 export interface Env {
   DB?: D1Database;
   AI?: Ai;
+  REPORTES?: R2Bucket;
   TEMPORADA?: string;
   FONTUMI_TOKEN?: string;
+  /** Location ID de GoHighLevel (detrás de Fontumi). Requerido por su API para /contacts y /conversations. */
+  FONTUMI_LOCATION_ID?: string;
 }

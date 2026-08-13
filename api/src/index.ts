@@ -149,6 +149,9 @@ app.post('/api/simular', async (c) => {
  * Con `foto_base64` + binding AI, la severidad la pone el clasificador de
  * visión (adapters/vision.ts). Sin foto, o sin AI disponible, `severidad`
  * la pone el cliente directamente — el modo manual nunca se rompe.
+ *
+ * Con binding R2 (opcional, como D1), la foto se guarda para historial —
+ * sin R2, sigue funcionando igual, solo no queda la imagen archivada.
  */
 app.post('/api/reportes', async (c) => {
   const b = await c.req
@@ -160,20 +163,38 @@ app.post('/api/reportes', async (c) => {
   let confianza = 1.0;
   let pendienteRevision = 0;
   let descripcionIa: string | null = null;
+  let fotoUrl = b.foto_url ?? null;
 
-  if (b.foto_base64 && c.env.AI) {
-    try {
-      const lectura = await clasificarCanal(c.env.AI, base64ToArrayBuffer(b.foto_base64));
-      sev = lectura.severidad;
-      confianza = lectura.confianza;
-      pendienteRevision = lectura.pendiente_revision ? 1 : 0;
-      descripcionIa = lectura.descripcion;
-    } catch (e: any) {
-      // El clasificador falló: no inventamos severidad, va a revisión humana.
+  const imagen = b.foto_base64 ? base64ToArrayBuffer(b.foto_base64) : null;
+
+  if (imagen) {
+    if (c.env.REPORTES) {
+      // Se guarda ANTES de clasificar: si el modelo falla, no perdemos la foto.
+      const key = `reportes/${b.zona_id}/${Date.now()}-${crypto.randomUUID()}.jpg`;
+      try {
+        await c.env.REPORTES.put(key, imagen, { httpMetadata: { contentType: 'image/jpeg' } });
+        fotoUrl = key;
+      } catch (e: any) {
+        console.log(JSON.stringify({ evento: 'r2_put_fallo', zona_id: b.zona_id, error: String(e?.message ?? e) }));
+      }
+    }
+
+    if (c.env.AI) {
+      try {
+        const lectura = await clasificarCanal(c.env.AI, imagen);
+        sev = lectura.severidad;
+        confianza = lectura.confianza;
+        pendienteRevision = lectura.pendiente_revision ? 1 : 0;
+        descripcionIa = lectura.descripcion;
+      } catch (e: any) {
+        // El clasificador falló: no inventamos severidad, va a revisión humana.
+        sev = Math.max(0, Math.min(3, Number(b.severidad ?? 2)));
+        confianza = 0;
+        pendienteRevision = 1;
+        descripcionIa = `clasificador falló: ${String(e?.message ?? e).slice(0, 150)}`;
+      }
+    } else {
       sev = Math.max(0, Math.min(3, Number(b.severidad ?? 2)));
-      confianza = 0;
-      pendienteRevision = 1;
-      descripcionIa = `clasificador falló: ${String(e?.message ?? e).slice(0, 150)}`;
     }
   } else {
     sev = Math.max(0, Math.min(3, Number(b.severidad ?? 2)));
@@ -182,11 +203,12 @@ app.post('/api/reportes', async (c) => {
   if (c.env.DB) {
     await c.env.DB.prepare(
       'INSERT INTO reportes (zona_id, lat, lon, foto_url, severidad, confianza, pendiente_revision, descripcion_ia, telefono) VALUES (?,?,?,?,?,?,?,?,?)',
-    ).bind(b.zona_id, b.lat ?? null, b.lon ?? null, b.foto_url ?? null, sev, confianza, pendienteRevision, descripcionIa, b.telefono ?? null).run();
+    ).bind(b.zona_id, b.lat ?? null, b.lon ?? null, fotoUrl, sev, confianza, pendienteRevision, descripcionIa, b.telefono ?? null).run();
   }
   return c.json({
     ok: true, zona_id: b.zona_id, severidad: sev, confianza,
-    pendiente_revision: !!pendienteRevision, obstruccion_estimada: sev / 3, persistido: !!c.env.DB,
+    pendiente_revision: !!pendienteRevision, obstruccion_estimada: sev / 3,
+    persistido: !!c.env.DB, foto_guardada: !!(c.env.REPORTES && imagen),
   });
 });
 
@@ -236,7 +258,7 @@ export default {
         // máximo un aviso por zona/banda cada 6 h (yaAvisado/registrarAviso).
         if (env.DB && criticas.length > 0) {
           const notificador = construirNotificador(env);
-          const canal = env.FONTUMI_TOKEN ? 'whatsapp' : 'consola';
+          const canal = env.FONTUMI_TOKEN && env.FONTUMI_LOCATION_ID ? 'whatsapp' : 'consola';
 
           for (const z of criticas) {
             const banda = z.pico.banda;
@@ -258,11 +280,25 @@ export default {
             const msg = plantillaWhatsApp(aviso);
             const guion = guionVoz(aviso);
 
+            let enviados = 0;
             for (const d of aplican) {
-              await notificador.whatsapp(d, msg);
-              if (d.voz && banda === 'rojo') await notificador.voz(d, guion);
+              try {
+                await notificador.whatsapp(d, msg);
+                enviados++;
+              } catch (e: any) {
+                console.log(JSON.stringify({ evento: 'notificacion_fallida', canal: 'whatsapp', zona: z.zona.id, telefono: d.telefono, error: String(e?.message ?? e) }));
+              }
+              // La voz es best-effort: si falla (ej. iAgents sin confirmar),
+              // no debe tumbar el WhatsApp que sí se mandó.
+              if (d.voz && banda === 'rojo') {
+                try {
+                  await notificador.voz(d, guion);
+                } catch (e: any) {
+                  console.log(JSON.stringify({ evento: 'notificacion_fallida', canal: 'voz', zona: z.zona.id, telefono: d.telefono, error: String(e?.message ?? e) }));
+                }
+              }
             }
-            await registrarAviso(env, z.zona.id, banda, canal, aplican.length);
+            if (enviados > 0) await registrarAviso(env, z.zona.id, banda, canal, enviados);
           }
         }
       })(),

@@ -266,11 +266,11 @@ export const DEFINICIONES: Record<Idioma, Record<string, { titulo: string; cuerp
       cuerpo: 'Número de 0 a 100 que ordena qué zona está peor ahora. No es una probabilidad: el modelo no está calibrado contra inundaciones históricas. Sirve para comparar zonas y decidir, no para citar un porcentaje de chance.',
     },
     VER: {
-      titulo: 'VER — Valor expuesto en riesgo',
-      cuerpo: 'Plata que los negocios de esta zona pueden dejar de cobrar si se inunda el tiempo previsto. Es un valor esperado con supuestos editables, no una pérdida ya ocurrida. OSM subcuenta establecimientos: el número es un piso.',
+      titulo: 'Plata en riesgo',
+      cuerpo: 'Plata que los negocios de esta zona pueden dejar de cobrar si se inunda el tiempo previsto. Es una cuenta esperada con cifras editables, no una pérdida que ya pasó. El mapa abierto subcuenta locales: el número es un piso.',
     },
     eta: {
-      titulo: 'η — fracción perdida de verdad',
+      titulo: 'Lo que no se recupera',
       cuerpo: 'Parte del ingreso que no se cobra después. Un almuerzo no se recupera mañana. La noche de hotel casi siempre ya está pagada: se pierde restaurante y cancelaciones, no la habitación.',
     },
     ventana: {
@@ -284,11 +284,11 @@ export const DEFINICIONES: Record<Idioma, Record<string, { titulo: string; cuerp
       cuerpo: 'A 0–100 number that ranks which zone is worse right now. It is not a probability: the model is not calibrated against historical floods. Use it to compare zones and decide, not as a percent chance.',
     },
     VER: {
-      titulo: 'VER — Value exposed to risk',
-      cuerpo: 'Money businesses in this zone may fail to collect if it floods for the forecasted hours. It is an expected value with editable assumptions, not a loss that already happened. OSM undercounts venues: the figure is a floor.',
+      titulo: 'Money at risk',
+      cuerpo: 'Money businesses in this zone may fail to collect if it floods for the forecasted hours. An expected figure with editable assumptions, not a loss that already happened. The open map undercounts venues: the figure is a floor.',
     },
     eta: {
-      titulo: 'η — truly lost fraction',
+      titulo: 'What is not recovered',
       cuerpo: 'The share of revenue that is not collected later. A lunch is not recovered tomorrow. A hotel night is usually already paid: you lose F&B and cancellations, not the room.',
     },
     ventana: {

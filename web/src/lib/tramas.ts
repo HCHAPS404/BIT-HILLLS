@@ -2,18 +2,18 @@
  * TRAMAS CARTOGRÁFICAS para las zonas del mapa.
  *
  * Un relleno translúcido plano es lo que sale por defecto de cualquier
- * librería: se ve igual en todos los dashboards del mundo. Las cartas
- * náuticas y los mapas de amenaza reales nunca hacen eso — usan RAYADO,
- * donde el ángulo y la densidad codifican la clase.
+ * librería. Las cartas de amenaza usan RAYADO: el tipo de marca codifica
+ * la clase, y se lee en gris, impreso y con daltonismo.
  *
- * Aquí la trama no es decoración: **la densidad ES la severidad**. Se lee
- * en escala de grises, se lee impreso, y se distingue aunque el jurado sea
- * daltónico. Un coropleto plano falla las tres.
+ * El tile chico (16px, paso 4) era una retícula de imprenta: al panear el
+ * mapa producía moiré y mareaba. Aquí las marcas son GORDAS, de historieta.
+ * Se cuentan a ojo. La severidad sigue en el TIPO, no en la frecuencia
+ * espacial:
  *
- *   verde     → punteado disperso  (zona en observación)
- *   amarillo  → rayado suave 45°
- *   naranja   → rayado denso 45°
- *   rojo      → rayado cruzado     (máxima densidad de tinta)
+ *   verde     → lunares grandes     (observación)
+ *   amarillo  → dos fajas a 45°     (vigilancia)
+ *   naranja   → fajas más juntas    (alerta)
+ *   rojo      → aspa grande         (crítico)
  *
  * Se generan en canvas y se registran con map.addImage(), así no hay que
  * servir ningún PNG ni depender de un CDN.
@@ -24,7 +24,7 @@ export type Banda = 'verde' | 'amarillo' | 'naranja' | 'rojo';
 interface Spec {
   /** variable CSS de la que sale la tinta — así la trama sigue al modo día/noche */
   token: string;
-  /** separación entre líneas en px — menor = más denso = más grave */
+  /** separación entre marcas en px. Debe dividir LADO para que el tile empalme. */
   paso: number;
   grosor: number;
   cruzado: boolean;
@@ -32,16 +32,17 @@ interface Spec {
 }
 
 const SPECS: Record<Banda, Spec> = {
-  verde:    { token: '--seco',    paso: 10, grosor: 1.0, cruzado: false, punteado: true },
-  amarillo: { token: '--vigila',  paso: 9,  grosor: 1.1, cruzado: false, punteado: false },
-  naranja:  { token: '--alerta',  paso: 5,  grosor: 1.3, cruzado: false, punteado: false },
-  rojo:     { token: '--critico', paso: 4,  grosor: 1.5, cruzado: true,  punteado: false },
+  verde:    { token: '--seco',    paso: 32, grosor: 5.0, cruzado: false, punteado: true },
+  amarillo: { token: '--vigila',  paso: 32, grosor: 6.0, cruzado: false, punteado: false },
+  naranja:  { token: '--alerta',  paso: 16, grosor: 5.5, cruzado: false, punteado: false },
+  rojo:     { token: '--critico', paso: 32, grosor: 6.5, cruzado: true,  punteado: false },
 };
 
 const tinta = (token: string) =>
   getComputedStyle(document.documentElement).getPropertyValue(token).trim() || '#888';
 
-const LADO = 16; // el tile se repite cada 16 px
+/** 64px: cada marca es un dibujo, no un punto de trama. */
+const LADO = 64;
 
 function dibujar(spec: Spec, dpr: number): ImageData {
   const px = LADO * dpr;
@@ -54,19 +55,19 @@ function dibujar(spec: Spec, dpr: number): ImageData {
 
   if (spec.punteado) {
     g.fillStyle = tintaColor;
-    for (let y = 0; y < LADO; y += spec.paso) {
-      for (let x = 0; x < LADO; x += spec.paso) {
-        g.beginPath();
-        g.arc(x + (y / spec.paso % 2 ? spec.paso / 2 : 0), y, spec.grosor, 0, Math.PI * 2);
-        g.fill();
-      }
+    // Lunares interiores: no van al borde, el tile no se come medio círculo.
+    const lunares: [number, number][] = [[18, 16], [46, 20], [30, 46], [14, 50]];
+    for (const [x, y] of lunares) {
+      g.beginPath();
+      g.arc(x, y, spec.grosor, 0, Math.PI * 2);
+      g.fill();
     }
     return g.getImageData(0, 0, px, px);
   }
 
   g.strokeStyle = tintaColor;
   g.lineWidth = spec.grosor;
-  g.lineCap = 'square';
+  g.lineCap = 'round';
 
   // Rayado a 45°: se dibuja de −LADO a 2·LADO para que el tile empalme.
   for (let i = -LADO; i < LADO * 2; i += spec.paso) {

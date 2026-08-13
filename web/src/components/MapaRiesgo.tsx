@@ -18,6 +18,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { GeoResp } from '../lib/api';
 import { registrarTramas, EXPR_TRAMA, EXPR_COLOR } from '../lib/tramas';
+import { pintarBasemapPlano } from '../lib/basemapPlano';
 
 /** Noche: carbón. Día: Voyager (parques, agua y vías con color, no gris). */
 const ESTILOS = {
@@ -86,6 +87,9 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
 
     const construirCapas = () => {
       registrarTramas(m);
+      // Día: Voyager re-tinteado al plano ilustrado (crema / ámbar / cian / lima).
+      // Noche se queda en dark-matter. No emite styledata: no re-entra.
+      if (temaRef.current === 'dia') pintarBasemapPlano(m);
       const css = getComputedStyle(document.documentElement);
 
       /**
@@ -108,7 +112,7 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
         id: 'velo', type: 'fill', source: 'velo',
         paint: {
           'fill-color': css.getPropertyValue('--abismo').trim() || '#131315',
-          'fill-opacity': temaRef.current === 'dia' ? 0.06 : 0.16,
+          'fill-opacity': temaRef.current === 'dia' ? 0.02 : 0.16,
         },
       });
 

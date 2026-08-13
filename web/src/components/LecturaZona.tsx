@@ -12,6 +12,7 @@ import {
 } from '../lib/lectura';
 import { Definicion } from './Definicion';
 import { EscalaIRI } from './EscalaIRI';
+import { COLOR_COMP, IconoCanal, IconoDrenaje, IconoLluvia, IconoZona } from './Iconos';
 
 export function LecturaZona({ detalle, idioma }: { detalle: DetalleZona; idioma: Idioma }) {
   const t = T[idioma];
@@ -84,17 +85,31 @@ export function LecturaZona({ detalle, idioma }: { detalle: DetalleZona; idioma:
   );
 }
 
+const ICONO_COMP = {
+  R: IconoLluvia,
+  D: IconoDrenaje,
+  O: IconoCanal,
+  S: IconoZona,
+} as const;
+
 export function ComponentesZona({ detalle, idioma }: { detalle: DetalleZona; idioma: Idioma }) {
   return (
     <div style={{ marginTop: 'var(--esp-6)', borderTop: 'var(--linea)', paddingTop: 'var(--esp-5)' }}>
       {([['R', detalle.pico.componentes.R], ['D', detalle.pico.componentes.D],
          ['O', detalle.pico.componentes.O], ['S', detalle.pico.componentes.S]] as const).map(([k, v]) => {
         const { nombre, linea } = porQueComponente(k as ClaveComponente, v, idioma, detalle.pico.componentes.R);
+        const Icono = ICONO_COMP[k];
+        const color = COLOR_COMP[k];
         return (
-          <div key={k} style={{ marginBottom: 'var(--esp-5)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 'var(--esp-3)' }}>
-              <span style={{ fontSize: 'var(--texto-md)', color: 'var(--papel)' }}>{nombre}</span>
-              <span className="num" style={{ fontSize: 'var(--texto-md)', color: 'var(--acento)' }}>{v.toFixed(2)}</span>
+          <div key={k} className="comp-item" style={{ ['--comp' as string]: color }}>
+            <div className="comp-item-cabeza">
+              <span className="comp-item-nombre">
+                <span className="comp-item-icono" aria-hidden>
+                  <Icono size={12} />
+                </span>
+                {nombre}
+              </span>
+              <span className="num comp-item-valor">{v.toFixed(2)}</span>
             </div>
             <div className="prosa-nota" style={{ marginTop: 'var(--esp-2)' }}>
               {linea}

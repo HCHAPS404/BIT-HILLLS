@@ -14,6 +14,9 @@
 
 import { useMemo, type ReactNode } from 'react';
 import type { Punto } from '../lib/api';
+import type { Idioma } from '../i18n';
+import { T } from '../i18n';
+import { COLOR_COMP, IconoDrenaje, IconoLluvia, IconoManana, IconoMediodia, IconoNoche, IconoTarde } from './Iconos';
 
 const CX = 150, CY = 150;
 const R_INT = 52, R_EXT = 118;
@@ -48,10 +51,12 @@ interface Props {
   ventanaCritica: { desde: string; hasta: string } | null;
   pico: Punto;
   simulado?: boolean;
-  rotuloVentana?: React.ReactNode;
+  rotuloVentana?: ReactNode;
+  idioma: Idioma;
 }
 
-export function RelojMarea({ serie, ventanaCritica, pico, simulado, rotuloVentana }: Props) {
+export function RelojMarea({ serie, ventanaCritica, pico, simulado, rotuloVentana, idioma }: Props) {
+  const t = T[idioma];
   const horas = useMemo(
     () => serie.slice(0, 24).map((p) => ({ ...p, h: Number(p.t.slice(11, 13)) })),
     [serie],
@@ -63,6 +68,13 @@ export function RelojMarea({ serie, ventanaCritica, pico, simulado, rotuloVentan
   const hDesde = ventanaCritica ? Number(ventanaCritica.desde.slice(11, 13)) : null;
   const hHasta = ventanaCritica ? Number(ventanaCritica.hasta.slice(11, 13)) : null;
 
+  const marcasHora = [
+    { h: 0, etiqueta: t.horaNoche, Icono: IconoNoche },
+    { h: 6, etiqueta: t.horaManana, Icono: IconoManana },
+    { h: 12, etiqueta: t.horaMediodia, Icono: IconoMediodia },
+    { h: 18, etiqueta: t.horaTarde, Icono: IconoTarde },
+  ] as const;
+
   // Contorno de marea: polígono cerrado por los radios de D
   const contorno = horas.length
     ? horas.map((p, i) => { const [x, y] = pt(p.h, radio(p.componentes.D)); return `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`; }).join(' ') + ' Z'
@@ -70,16 +82,22 @@ export function RelojMarea({ serie, ventanaCritica, pico, simulado, rotuloVentan
 
   return (
     <div style={{ position: 'relative' }}>
-      <svg viewBox="0 0 300 300" width="100%" style={{ display: 'block', maxWidth: '100%', margin: '0 auto' }}>
+      <svg
+        viewBox="0 -6 300 312"
+        width="100%"
+        role="img"
+        aria-label={t.relojAria}
+        style={{ display: 'block', maxWidth: '100%', margin: '0 auto' }}
+      >
         <defs>
           <radialGradient id="fondoDial">
             <stop offset="0%" stopColor="var(--profundo)" />
             <stop offset="100%" stopColor="var(--abismo)" />
           </radialGradient>
           {simulado && (
-            <pattern id="rayado" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
-              <rect width="8" height="8" fill="none" />
-              <line x1="0" y1="0" x2="0" y2="8" stroke="var(--vigila)" strokeWidth="2" opacity="0.16" />
+            <pattern id="rayado" width="24" height="24" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+              <rect width="24" height="24" fill="none" />
+              <line x1="0" y1="0" x2="0" y2="24" stroke="var(--vigila)" strokeWidth="1" opacity="0.04" />
             </pattern>
           )}
         </defs>
@@ -115,14 +133,9 @@ export function RelojMarea({ serie, ventanaCritica, pico, simulado, rotuloVentan
           const [x2, y2] = pt(h, R_EXT + (mayor ? 13 : 8));
           return <line key={`t${h}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke={mayor ? 'var(--papel-tenue)' : 'var(--sonda)'} strokeWidth="1" />;
         })}
-        {[0, 6, 12, 18].map((h) => {
-          const [x, y] = pt(h, R_EXT + 26);
-          return (
-            <text key={`l${h}`} x={x} y={y} textAnchor="middle" dominantBaseline="middle"
-              fill="var(--papel-fant)" fontFamily="'JetBrains Mono', monospace" fontSize="11" letterSpacing="0.8">
-              {String(h).padStart(2, '0')}
-            </text>
-          );
+        {marcasHora.map(({ h, Icono }) => {
+          const [ix, iy] = pt(h, R_EXT + 24);
+          return <Icono key={`l${h}`} size={13} x={ix - 6.5} y={iy - 6.5} ink="var(--papel-tenue)" />;
         })}
 
         {/* Aguja de la hora actual */}
@@ -154,17 +167,25 @@ export function RelojMarea({ serie, ventanaCritica, pico, simulado, rotuloVentan
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--esp-5)', marginTop: 'var(--esp-4)', flexWrap: 'wrap' }}>
-        <Leyenda color="var(--acento)" texto="radio = bloqueo de drenaje (D)" />
-        <Leyenda color="var(--alerta)" texto="color = lluvia (R)" />
+      <div className="reloj-horas" aria-hidden>
+        {marcasHora.map(({ h, etiqueta, Icono }) => (
+          <span key={h} className="reloj-hora">
+            <Icono size={12} />
+            {etiqueta}
+          </span>
+        ))}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--esp-5)', marginTop: 'var(--esp-3)', flexWrap: 'wrap' }}>
+        <Leyenda color={COLOR_COMP.D} texto={t.leyendaD} icono={<IconoDrenaje size={12} />} />
+        <Leyenda color={COLOR_COMP.R} texto={t.leyendaR} icono={<IconoLluvia size={12} />} />
       </div>
     </div>
   );
 }
 
-const Leyenda = ({ color, texto }: { color: string; texto: string }) => (
-  <span className="rotulo" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--esp-2)' }}>
-    <span style={{ width: 8, height: 8, background: color, display: 'inline-block' }} />
+const Leyenda = ({ color, texto, icono }: { color: string; texto: string; icono: ReactNode }) => (
+  <span className="rotulo" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--esp-2)', color }}>
+    <span style={{ display: 'inline-flex', color }} aria-hidden>{icono}</span>
     {texto}
   </span>
 );

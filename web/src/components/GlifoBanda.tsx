@@ -6,9 +6,9 @@
  * la lista de zonas la banda iba únicamente en el color del número.
  *
  * La solución no es un icono cualquiera: el glifo REPRODUCE la trama que esa
- * misma zona tiene pintada en el mapa. Punteado, rayado, rayado denso, rayado
- * cruzado. Así la lista y el mapa hablan el mismo idioma y el glifo te dice
- * qué textura buscar en el territorio.
+ * misma zona tiene pintada en el mapa. Lunares, faja, fajas, aspa. Así la
+ * lista y el mapa hablan el mismo idioma y el glifo te dice qué marca buscar
+ * en el territorio.
  *
  * Deja de ser una casilla de accesibilidad y pasa a ser una mejora de lectura.
  */
@@ -16,10 +16,10 @@
 import type { Banda } from '../lib/api';
 
 const TRAZOS: Record<Banda, { d: string; puntos?: [number, number][] }> = {
-  verde:    { d: '', puntos: [[3, 3], [8, 6], [3, 9], [8, 11]] },
-  amarillo: { d: 'M1,10 L6,1 M6,10 L11,1' },
-  naranja:  { d: 'M0,10 L4,1 M4,10 L8,1 M8,10 L12,1' },
-  rojo:     { d: 'M0,10 L4,1 M4,10 L8,1 M8,10 L12,1 M0,1 L4,10 M4,1 L8,10 M8,1 L12,10' },
+  verde:    { d: '', puntos: [[3.5, 4], [8.5, 8]] },
+  amarillo: { d: 'M2,11 L8,1' },
+  naranja:  { d: 'M1,11 L7,1 M6,11 L12,1' },
+  rojo:     { d: 'M2,11 L10,1 M2,1 L10,11' },
 };
 
 const NOMBRE: Record<Banda, string> = {
@@ -32,8 +32,8 @@ export function GlifoBanda({ banda, color }: { banda: Banda; color: string }) {
     <svg width="12" height="12" viewBox="0 0 12 12" role="img"
       aria-label={`Banda ${NOMBRE[banda]}`} style={{ flexShrink: 0, overflow: 'visible' }}>
       {t.puntos
-        ? t.puntos.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="1" fill={color} />)
-        : <path d={t.d} stroke={color} strokeWidth="1.2" strokeLinecap="round" fill="none" />}
+        ? t.puntos.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="1.7" fill={color} />)
+        : <path d={t.d} stroke={color} strokeWidth="1.8" strokeLinecap="round" fill="none" />}
     </svg>
   );
 }

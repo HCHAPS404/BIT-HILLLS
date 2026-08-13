@@ -244,6 +244,7 @@ export default function App() {
           zonas={geo?.features.length ?? 0}
           establecimientos={geo?.features.reduce((a, f) => a + f.properties.establecimientos, 0) ?? 0}
           etiquetaCerrado={t.cartuchoCerrado}
+          idioma={idioma}
           abierto={cartaAbierta}
           onCambio={(v) => {
             setCartaAbierta(v);
@@ -399,6 +400,7 @@ export default function App() {
                     ventanaCritica={detalle.ventana_critica}
                     pico={detalle.pico}
                     simulado={detalle.simulado}
+                    idioma={idioma}
                     rotuloVentana={
                       <span className="rotulo" style={{ color: 'var(--critico)' }}>
                         <Definicion termino={idioma === 'en' ? 'critical window' : 'ventana crítica'} titulo={def.ventana.titulo}>
@@ -418,14 +420,12 @@ export default function App() {
               <Tornado
                 filas={detalle.sensibilidad}
                 sinCaja
-                definicionEta={
-                  <Definicion termino="η" titulo={def.eta.titulo}>{def.eta.cuerpo}</Definicion>
-                }
+                idioma={idioma}
               />
             </SeccionColapsable>
 
             <SeccionColapsable id="supuestos" titulo={t.supuestos} resumen={t.supuestosResumen}>
-              <PanelSupuestos onCambio={setOverrides} verTotal={verTotal} recalculando={recalc} sinCaja />
+              <PanelSupuestos onCambio={setOverrides} verTotal={verTotal} recalculando={recalc} sinCaja idioma={idioma} />
             </SeccionColapsable>
           </>
         )}

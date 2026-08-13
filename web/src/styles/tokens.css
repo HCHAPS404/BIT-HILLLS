@@ -63,7 +63,9 @@
   --sonda-alta:  #3D3D43;   /* bordes activos */
   --papel:       #ECEAEE;   /* tinta */
   --papel-tenue: #9E9CA3;
-  --papel-fant:  #6B696F;
+  /* 4.53:1 sobre panel y sobre fondo. Antes #6B696F daba 3.17:1 y .rotulo
+     es de 10px: NO califica como texto grande, así que necesita 4.5. */
+  --papel-fant:  #848289;
 
   /* ── Escala de alerta: lo único saturado ── */
   --seco:    #7CC3A5;
@@ -83,12 +85,13 @@
   --sonda-alta:  #CFC8D6;
   --papel:       #242128;
   --papel-tenue: #625C68;
-  --papel-fant:  #928A99;
+  /* 4.56:1. Antes #928A99 daba 2.97:1 sobre el fondo — fallaba incluso AA-grande. */
+  --papel-fant:  #736B7B;
 
   /* Mismos matices, oscurecidos para contrastar sobre papel. */
   --seco:    #397A61;
-  --vigila:  #8E6B22;
-  --alerta:  #C56B45;
+  --vigila:  #8B6921;   /* 4.53:1 sobre panel y fondo */
+  --alerta:  #AA5835;   /* 4.51:1 sobre panel Y sobre fondo; #C56B45 daba 3.69:1 */
   --critico: #AE3623;
 
   --acento: #6F5AA8;
@@ -394,3 +397,11 @@ button, select, input, .fila-zona {
   border-radius: var(--r);
 }
 .esqueleto-linea { height: 10px; margin-bottom: 7px; }
+
+/* Texto solo para lectores de pantalla. La banda se anuncia en palabras
+   además del glifo y el color: tres canales, no uno. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}

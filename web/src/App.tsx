@@ -12,6 +12,7 @@ import { PanelSupuestos } from './components/PanelSupuestos';
 import { Tornado } from './components/Tornado';
 import { Cartucho } from './components/Cartucho';
 import { Sparkline } from './components/Sparkline';
+import { GlifoBanda, nombreBanda } from './components/GlifoBanda';
 import {
   getZonas, getRiesgo, getEscenarios, simular,
   COLOR_BANDA, copCorto, type GeoResp, type DetalleZona,
@@ -89,7 +90,7 @@ export default function App() {
           media query de móvil y la barra volvería a tapar el mapa. */}
       <header className="barra-sup">
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
-          <span style={{ fontSize: 21, fontWeight: 800, letterSpacing: '-0.03em' }}>MAREA</span>
+          <h1 style={{ fontSize: 21, fontWeight: 800, letterSpacing: '-0.03em', margin: 0 }}>MAREA</h1>
           <span className="rotulo" style={{ maxWidth: 210, lineHeight: 1.3 }}>{t.subtitulo}</span>
         </div>
 
@@ -103,13 +104,13 @@ export default function App() {
           {meta?.degradado && <span className="badge badge-simulado latido">{t.degradado}</span>}
           {recalc && <span className="badge badge-vivo latido">{t.recalculando}</span>}
 
-          <select value={escenario} onChange={(e) => setEscenario(e.target.value)}
+          <select value={escenario} aria-label={t.enVivo} onChange={(e) => setEscenario(e.target.value)}
             style={{ fontSize: 10, padding: '4px 7px', letterSpacing: '0.06em' }}>
             <option value="">{t.enVivo}</option>
             {escenarios.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}
           </select>
 
-          <select value={temporada} onChange={(e) => setTemporada(e.target.value as any)}
+          <select value={temporada} aria-label={t.tempAlta} onChange={(e) => setTemporada(e.target.value as any)}
             style={{ fontSize: 10, padding: '4px 7px', letterSpacing: '0.06em' }}>
             <option value="alta">{t.tempAlta}</option>
             <option value="media">{t.tempMedia}</option>
@@ -187,8 +188,12 @@ export default function App() {
                     {p.nombre}
                     {p.es_turistica && <span style={{ color: 'var(--acento)', fontSize: 9 }}> ◆</span>}
                   </span>
-                  <span className="num" style={{ fontSize: 15, fontWeight: 700, color: COLOR_BANDA[p.banda] }}>
-                    {p.iri.toFixed(0)}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    <GlifoBanda banda={p.banda} color={COLOR_BANDA[p.banda]} />
+                    <span className="num" style={{ fontSize: 15, fontWeight: 700, color: COLOR_BANDA[p.banda] }}>
+                      {p.iri.toFixed(0)}
+                    </span>
+                    <span className="sr-only">{nombreBanda(p.banda)}</span>
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 3, gap: 8 }}>
@@ -230,7 +235,7 @@ export default function App() {
         {detalle && (
           <>
             <div className={`panel ${detalle.simulado ? 'simulado' : ''}`} style={{ padding: 11 }}>
-              <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.01em' }}>{detalle.zona.nombre}</div>
+              <h2 style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.01em', margin: 0 }}>{detalle.zona.nombre}</h2>
               <div className="rotulo" style={{ textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.4, marginTop: 3 }}>
                 {detalle.zona.nota}
               </div>

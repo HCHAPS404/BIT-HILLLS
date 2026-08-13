@@ -102,16 +102,9 @@ export default function App() {
 
   return (
     <div className="layout">
-      <div className="capa-mapa">
-        <MapaRiesgo datos={geo} seleccion={sel} onSeleccion={setSel} tema={tema} />
-        {meta?.simulado && (
-          <div className="sello-escenario" role="status">{t.selloEscenario}</div>
-        )}
-      </div>
-
       {/* ─── BARRA SUPERIOR ─── */}
-      {/* Posicionamiento en tokens.css, NO inline: el inline le ganaría a la
-          media query de móvil y la barra volvería a tapar el mapa. */}
+      {/* En el flujo, no absolute: si se parte en dos filas el HUD
+          no tiene que adivinar un top en píxeles. */}
       <header className="barra-sup">
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--esp-4)' }}>
           <h1 style={{ fontSize: 'var(--texto-xl)', fontWeight: 800, letterSpacing: '-0.03em', margin: 0 }}>MAREA</h1>
@@ -168,12 +161,16 @@ export default function App() {
         </div>
       )}
 
+      <div className="escena">
+      <div className="capa-mapa">
+        <MapaRiesgo datos={geo} seleccion={sel} onSeleccion={setSel} tema={tema} />
+        {meta?.simulado && (
+          <div className="sello-escenario" role="status">{t.selloEscenario}</div>
+        )}
+      </div>
+
       {meta?.avisos?.length ? (
-        <div className="simulado" style={{
-          position: 'absolute', top: meta.simulado ? 96 : 54, left: '50%', transform: 'translateX(-50%)', zIndex: 13,
-          border: '1px solid var(--alerta)', background: 'var(--profundo)', padding: 'var(--esp-2) var(--esp-5)',
-          maxWidth: 'min(560px, 92vw)',
-        }}>
+        <div className="aviso-api simulado">
           <span className="rotulo" style={{ color: 'var(--alerta)', textTransform: 'none', letterSpacing: '0.04em' }}>
             {meta.avisos.join(' · ')}
           </span>
@@ -181,8 +178,7 @@ export default function App() {
       ) : null}
 
       {error && (
-        <div style={{ position: 'absolute', top: 54, left: '50%', transform: 'translateX(-50%)', zIndex: 13,
-          border: '1px solid var(--critico)', background: 'var(--profundo)', padding: 'var(--esp-2) var(--esp-5)' }}>
+        <div className="aviso-api" style={{ borderColor: 'var(--critico)' }}>
           <span className="rotulo" style={{ color: 'var(--critico)', textTransform: 'none' }}>API: {error}</span>
         </div>
       )}
@@ -352,6 +348,7 @@ export default function App() {
           </>
         )}
       </aside>
+      </div>
 
       {modoPitch && (
         <ModoPresentacion

@@ -301,24 +301,24 @@ input[type="range"] { accent-color: var(--acento); background: transparent; bord
    pasa a scroll vertical normal — mapa arriba, paneles abajo.
    El jurado puede abrir esto en el celular; no es hipotético. */
 
-.layout { position: fixed; inset: 0; overflow: hidden; }
+.layout {
+  position: fixed; inset: 0; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.escena { position: relative; flex: 1; min-height: 0; }
 .capa-mapa { position: absolute; inset: 0; overflow: hidden; }
 
 .hud {
-  position: absolute; top: 72px; bottom: var(--gutter); z-index: 10;
+  position: absolute; top: var(--gutter); bottom: var(--gutter); z-index: 10;
   display: flex; flex-direction: column; gap: var(--esp-6);
   overflow-y: auto; overscroll-behavior: contain;
 }
 .hud-izq { left: var(--gutter); width: 320px; bottom: 52px; }
 .hud-der { right: var(--gutter); width: 380px; }
 
-/* La banda de escenario empuja el HUD hacia abajo. :has evita un
-   segundo layout mode y no toca el mapa. */
-.layout:has(.aviso-escenario) .hud { top: 110px; }
-
 .aviso-escenario {
-  position: absolute; top: 58px; left: 0; right: 0; z-index: 12;
-  padding: var(--esp-2) var(--esp-5);
+  flex-shrink: 0;
+  padding: var(--esp-3) var(--gutter);
   background-color: var(--profundo);
   border-bottom: 1px solid var(--vigila);
   color: var(--vigila);
@@ -329,8 +329,17 @@ input[type="range"] { accent-color: var(--acento); background: transparent; bord
   text-align: center;
 }
 
+.aviso-api {
+  position: absolute; top: var(--gutter); left: 50%; transform: translateX(-50%);
+  z-index: 13;
+  border: 1px solid var(--alerta);
+  background-color: var(--profundo);
+  padding: var(--esp-2) var(--esp-5);
+  max-width: min(560px, 92vw);
+}
+
 .sello-escenario {
-  position: absolute; top: 78px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: var(--gutter); left: 50%; transform: translateX(-50%);
   z-index: 5; pointer-events: none;
   font-family: var(--mono); font-size: var(--texto-xs);
   letter-spacing: 0.08em; text-transform: uppercase;
@@ -339,7 +348,6 @@ input[type="range"] { accent-color: var(--acento); background: transparent; bord
   padding: var(--esp-2) var(--esp-4);
   border: 1px solid var(--vigila);
 }
-.layout:has(.aviso-escenario) .sello-escenario { top: 114px; }
 
 .frase-estado {
   font-size: var(--texto-lg);
@@ -479,7 +487,7 @@ button.termino:active { transform: none; }
    Ojo: esto vive en CSS y NO en estilo inline, porque el inline le ganaría
    a la media query de móvil y la barra seguiría tapando el mapa. */
 .barra-sup {
-  position: absolute; top: 0; left: 0; right: 0; z-index: 12;
+  position: relative; flex-shrink: 0; z-index: 12;
   display: flex; align-items: center; gap: var(--esp-5); flex-wrap: wrap;
   padding: var(--esp-5) var(--gutter);
   background-color: var(--abismo);
@@ -541,6 +549,7 @@ button, select, input, .fila-zona {
   ::-webkit-scrollbar { width: 0; height: 0; }
 
   .layout { position: static; inset: auto; overflow: visible; min-height: 100%; }
+  .escena { display: contents; }
   .capa-mapa { position: relative; inset: auto; height: 46vh; min-height: 260px; }
   .hud {
     position: static; width: auto; max-height: none;
@@ -549,19 +558,15 @@ button, select, input, .fila-zona {
   .hud-izq, .hud-der { left: auto; right: auto; width: auto; bottom: auto; }
   .hud:last-child { margin-bottom: var(--esp-6); }
 
-  /* En escritorio la barra flota sobre el mapa. En móvil el mapa solo mide
-     ~374 px de alto y la barra le comía la mitad, así que entra en el flujo. */
   .barra-sup {
     position: sticky; top: 0;
     background-color: var(--abismo);
     border-bottom: var(--linea);
   }
-  .layout { display: flex; flex-direction: column; }
-  .barra-sup { order: -1; }
 
-  .aviso-escenario { position: static; text-align: left; }
-  .layout:has(.aviso-escenario) .hud { top: auto; }
-  .sello-escenario, .layout:has(.aviso-escenario) .sello-escenario { top: 8px; }
+  .aviso-escenario { text-align: left; }
+  .aviso-api { position: static; transform: none; margin: var(--esp-4) var(--gutter) 0; max-width: none; }
+  .sello-escenario { top: 8px; }
   .definicion-panel { width: min(248px, calc(100vw - 40px)); }
 }
 

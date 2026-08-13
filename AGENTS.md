@@ -122,9 +122,9 @@ trabajo de fondo, no bloqueante:
 
 ## Pitch
 
-`PITCH-SLIDES.md` (slides, Marp) y `PITCH-GUION.md` (guion hablado,
-~4 min, con respuestas a preguntas esperadas del jurado) ya están listos
-en la raíz del repo.
+`PITCH-SLIDES.md` (slides, Marp) está en la raíz del repo. Existe además
+un guion hablado personal (no versionado, gitignored) — si hace falta
+uno nuevo, generarlo de nuevo a partir de las slides.
 
 ## Resuelto
 

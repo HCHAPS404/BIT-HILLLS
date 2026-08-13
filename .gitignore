@@ -4,3 +4,6 @@ dist/
 .dev.vars
 .DS_Store
 *.log
+
+# Personal, no compartido con el equipo.
+PITCH-GUION.md

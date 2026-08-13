@@ -47,8 +47,15 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
     const m = new maplibregl.Map({
       container: cont.current,
       style: ESTILOS[temaRef.current],
-      center: [-75.529, 10.408],
-      zoom: 12.1,
+      // Encuadre fijo (no fitBounds dinámico, es cámara de instrumento) pero
+      // calculado del bounding box real de las 6 zonas — con center/zoom
+      // fijos a mano, El Socorro (más al sureste, fuera del corredor
+      // turístico) quedaba fuera de cámara y solo se veían 4 de 6 zonas.
+      bounds: [
+        [-75.56219, 10.37941],
+        [-75.476, 10.42898],
+      ],
+      fitBoundsOptions: { padding: 60 },
       attributionControl: { compact: true },
     });
     mapa.current = m;

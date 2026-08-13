@@ -11,14 +11,15 @@ interface Props {
   resumen?: string;
   children: ReactNode;
   defaultAbierta?: boolean;
+  className?: string;
 }
 
-export function SeccionColapsable({ id, titulo, resumen, children, defaultAbierta = false }: Props) {
+export function SeccionColapsable({ id, titulo, resumen, children, defaultAbierta = false, className }: Props) {
   const [abierta, setAbierta] = useState(defaultAbierta);
   const btnId = `${id}-btn`;
 
   return (
-    <div className="panel" style={{ padding: 'var(--esp-6)' }}>
+    <div className={['panel', className].filter(Boolean).join(' ')} style={{ padding: 'var(--esp-6)' }}>
       <button
         type="button"
         id={btnId}
@@ -31,7 +32,7 @@ export function SeccionColapsable({ id, titulo, resumen, children, defaultAbiert
         <span className="rotulo">{abierta ? 'cerrar' : 'abrir'}</span>
       </button>
       {!abierta && resumen && (
-        <div className="rotulo" style={{ marginTop: 'var(--esp-3)', textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5 }}>
+        <div className="prosa-nota" style={{ marginTop: 'var(--esp-3)' }}>
           {resumen}
         </div>
       )}

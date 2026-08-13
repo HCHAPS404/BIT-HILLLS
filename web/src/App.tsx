@@ -205,9 +205,17 @@ export default function App() {
           />
         )}
 
-        <div className="panel milimetrado" style={{ padding: 'var(--esp-6)' }}>
-          <div className="rotulo" style={{ color: 'var(--acento)', marginBottom: 'var(--esp-4)' }}>{t.zonas}</div>
-
+        <SeccionColapsable
+          id="zonas"
+          titulo={t.zonas}
+          defaultAbierta
+          className="milimetrado"
+          resumen={(() => {
+            const z = geo?.features.find((f) => f.properties.id === sel)?.properties;
+            if (!z) return geo ? `${geo.features.length}` : undefined;
+            return `${z.nombre} · ${Math.round(z.iri)}/100 · ${t.bandaDe[z.banda]}`;
+          })()}
+        >
           {!geo && !error && <Esqueleto n={6} alto={30} />}
 
           {geo?.features.length === 0 && (
@@ -254,7 +262,7 @@ export default function App() {
           <div className="rotulo" style={{ fontSize: 'var(--texto-xs)', marginTop: 'var(--esp-3)', textTransform: 'none', lineHeight: 1.5 }}>
             ◆ {t.turistica} · {t.osmNota}
           </div>
-        </div>
+        </SeccionColapsable>
       </aside>
 
       {/* ─── HUD DERECHA · detalle de zona ─── */}

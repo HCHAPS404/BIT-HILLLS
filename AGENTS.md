@@ -30,8 +30,8 @@ cd web && npm install && npm run dev   # :5173
 `e75862195de36f76657bda6bef14ec71`):**
 
 - API (Worker): `https://marea-api.marea-cartagena.workers.dev` — funcionando, CI/CD ok.
-- Web (Pages, proyecto `marea`): `https://marea-drq.pages.dev` — el primer deploy manual funcionó, pero el deploy automático por GitHub Actions **fallaba** por permisos del token (ver estado real del workflow antes de asumir que sigue roto: `gh run list --repo HCHAPS404/BIT-HILLLS`).
-- CI/CD: `.github/workflows/deploy.yml`, dispara en push a `main`. Secrets/variables ya están puestos en el repo de GitHub (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `VITE_API`) — no hace falta volver a crearlos, solo corregir permisos si algo falla.
+- Web (Pages, proyecto `marea`): `https://marea-drq.pages.dev` — funcionando, CI/CD ok.
+- CI/CD: `.github/workflows/deploy.yml`, dispara en push a `main`. Secrets/variables ya están puestos en el repo de GitHub (`CLOUDFLARE_API_TOKEN` con permisos Workers Scripts:Edit + Cloudflare Pages:Edit, `CLOUDFLARE_ACCOUNT_ID`, `VITE_API`) — confirmado funcionando en el run `31725700888` (2026-08-13), ambos jobs en success. Si algo falla más adelante, probablemente sea el token expirado/rotado, no un problema del workflow.
 - D1: NO está creado (opcional, comentado en `api/wrangler.jsonc`).
 
 ## Gaps de integración reales (no son solo TODOs de comentario)

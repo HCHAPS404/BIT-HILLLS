@@ -150,12 +150,40 @@ Van a existir seis dashboards con tarjetas redondeadas grises sobre `slate-50` y
 
 ---
 
+## Deploy
+
+**Manual:**
+```bash
+cd api && npm run deploy   # Cloudflare Worker
+cd web && npm run deploy   # Cloudflare Pages (build + wrangler pages deploy)
+```
+
+**Automático (CI/CD):** `.github/workflows/deploy.yml` despliega ambos en cada push a `main`
+(o manualmente desde la pestaña Actions → Deploy → Run workflow).
+
+Configurar una vez en el repo de GitHub (Settings → Secrets and variables → Actions):
+
+| Tipo | Nombre | Valor |
+|---|---|---|
+| Secret | `CLOUDFLARE_API_TOKEN` | token con permisos Workers Scripts:Edit + Cloudflare Pages:Edit |
+| Variable | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare dashboard → barra lateral derecha |
+| Variable | `VITE_API` | URL pública del Worker — se llena después del primer deploy de la API |
+
+El primer deploy conviene correrlo en manual (`npm run deploy` local, con `wrangler login`) para
+obtener la URL del Worker y poder rellenar `VITE_API`. De ahí en adelante, cada push a `main`
+redeploya solo.
+
+Secretos del Worker en runtime (no van en el workflow, se ponen una sola vez):
+```bash
+cd api && npx wrangler secret put FONTUMI_TOKEN   # opcional, rama feat/fontumi
+```
+
 ## Pendiente
 
 - [ ] Modelo de visión para severidad 0–3 desde foto de canal → alimenta `O`
 - [ ] Fontumi: WhatsApp en naranja, llamada de voz iAgent en rojo
 - [ ] D1 para historial (opcional; `npm run db:create` → pegar id en `wrangler.jsonc`)
-- [ ] Deploy: `cd api && npm run deploy` · `cd web && npm run deploy`
+- [ ] Primer deploy manual + configurar secrets/variables de GitHub Actions (ver sección Deploy)
 
 ## Los tres números del pitch
 

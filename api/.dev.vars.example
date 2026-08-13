@@ -1,0 +1,2 @@
+# Copiar a .dev.vars (ignorado por git) para desarrollo local con `wrangler dev`.
+FONTUMI_TOKEN=

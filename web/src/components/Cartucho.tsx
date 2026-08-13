@@ -21,6 +21,8 @@ interface Props {
   zonas: number;
   establecimientos: number;
   etiquetaCerrado?: string;
+  abierto?: boolean;
+  onCambio?: (abierto: boolean) => void;
 }
 
 const Fila = ({ k, v, acento }: { k: string; v: string; acento?: string }) => (
@@ -30,8 +32,17 @@ const Fila = ({ k, v, acento }: { k: string; v: string; acento?: string }) => (
   </div>
 );
 
-export function Cartucho({ fuente, escenarioNombre, generado, version, zonas, establecimientos, etiquetaCerrado = 'proyección · datum · sondas' }: Props) {
-  const [abierto, setAbierto] = useState(false);
+export function Cartucho({
+  fuente, escenarioNombre, generado, version, zonas, establecimientos,
+  etiquetaCerrado = 'proyección · datum · sondas',
+  abierto: controlada, onCambio,
+}: Props) {
+  const [interna, setInterna] = useState(false);
+  const abierto = controlada ?? interna;
+  const setAbierto = (v: boolean) => {
+    if (controlada === undefined) setInterna(v);
+    onCambio?.(v);
+  };
 
   const t = new Date(generado);
   const bogota = new Date(t.getTime() - 5 * 3600_000);

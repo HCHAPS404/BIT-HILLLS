@@ -67,6 +67,8 @@ export default function App() {
     () => (localStorage.getItem('marea:tema') as 'noche' | 'dia') ?? 'noche',
   );
   const [modoPitch, setModoPitch] = useState(false);
+  const [cartaAbierta, setCartaAbierta] = useState(false);
+  const [zonasAbierta, setZonasAbierta] = useState(true);
   const t = T[idioma];
   const def = DEFINICIONES[idioma];
 
@@ -242,6 +244,11 @@ export default function App() {
           zonas={geo?.features.length ?? 0}
           establecimientos={geo?.features.reduce((a, f) => a + f.properties.establecimientos, 0) ?? 0}
           etiquetaCerrado={t.cartuchoCerrado}
+          abierto={cartaAbierta}
+          onCambio={(v) => {
+            setCartaAbierta(v);
+            if (v) setZonasAbierta(false);
+          }}
         />
       )}
 
@@ -266,7 +273,11 @@ export default function App() {
         <SeccionColapsable
           id="zonas"
           titulo={t.zonas}
-          defaultAbierta
+          abierta={zonasAbierta}
+          onCambio={(v) => {
+            setZonasAbierta(v);
+            if (v) setCartaAbierta(false);
+          }}
           className="milimetrado"
           resumen={(() => {
             const z = geo?.features.find((f) => f.properties.id === sel)?.properties;

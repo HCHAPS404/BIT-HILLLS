@@ -25,6 +25,11 @@ export const T = {
     cD: 'drenaje',
     cO: 'canal',
     cS: 'zona',
+    recalculando: 'recalculando',
+    cargando: 'leyendo sondas…',
+    sinZonas: 'No hay zonas evaluadas. Revisa que la API esté corriendo en :8787.',
+    sinDetalle: 'sin lectura de esta zona',
+    sinDetalleAyuda: 'La API no devolvió la serie horaria. Elige otra zona o revisa /api/salud.',
   },
   en: {
     subtitulo: 'Flood early warning · Cartagena tourist corridor',
@@ -44,5 +49,10 @@ export const T = {
     cD: 'drainage',
     cO: 'canal',
     cS: 'zone',
+    recalculando: 'recalculating',
+    cargando: 'reading soundings…',
+    sinZonas: 'No zones evaluated. Check the API is running on :8787.',
+    sinDetalle: 'no reading for this zone',
+    sinDetalleAyuda: 'The API returned no hourly series. Pick another zone or check /api/salud.',
   },
 } as const;

@@ -150,3 +150,62 @@ input[type="range"] { accent-color: var(--cian); background: transparent; border
 
 /* La UI nunca desborda horizontalmente */
 .scroll-x { overflow-x: auto; }
+
+/* ───────────────────────── LAYOUT ─────────────────────────
+   Escritorio: mapa a sangre completa, HUD flotando encima.
+   Móvil: el HUD flotante taparía el mapa entero, así que la página
+   pasa a scroll vertical normal — mapa arriba, paneles abajo.
+   El jurado puede abrir esto en el celular; no es hipotético. */
+
+.layout { position: fixed; inset: 0; overflow: hidden; }
+.capa-mapa { position: absolute; inset: 0; }
+
+.hud {
+  position: absolute; top: 66px; bottom: 12px; z-index: 10;
+  display: flex; flex-direction: column; gap: 9px;
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.hud-izq { left: 12px; width: 272px; }
+.hud-der { right: 12px; width: 316px; }
+
+/* Escritorio: la barra flota sobre el mapa con degradado.
+   Ojo: esto vive en CSS y NO en estilo inline, porque el inline le ganaría
+   a la media query de móvil y la barra seguiría tapando el mapa. */
+.barra-sup {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 12;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(10,20,32,.96), rgba(10,20,32,.72) 70%, transparent);
+  border-bottom: var(--linea);
+}
+
+@media (max-width: 900px) {
+  .layout { position: static; inset: auto; overflow: visible; min-height: 100%; }
+  .capa-mapa { position: relative; inset: auto; height: 46vh; min-height: 260px; }
+  .hud {
+    position: static; width: auto; max-height: none;
+    overflow: visible; margin: 9px 9px 0;
+  }
+  .hud-izq, .hud-der { left: auto; right: auto; width: auto; }
+  .hud:last-child { margin-bottom: 16px; }
+
+  /* En escritorio la barra flota sobre el mapa. En móvil el mapa solo mide
+     ~374 px de alto y la barra le comía la mitad, así que entra en el flujo. */
+  .barra-sup {
+    position: sticky; top: 0;
+    background: var(--abismo);
+    border-bottom: var(--linea);
+  }
+  .layout { display: flex; flex-direction: column; }
+  .barra-sup { order: -1; }
+}
+
+/* ── Esqueleto de carga: barra de sondaje recorriendo, no un spinner ── */
+@keyframes sondaje { 0% { background-position: -180% 0 } 100% { background-position: 280% 0 } }
+.esqueleto {
+  background: linear-gradient(90deg, var(--sonda) 0%, var(--sonda-alta) 45%, var(--sonda) 90%);
+  background-size: 220% 100%;
+  animation: sondaje 1.25s linear infinite;
+  border-radius: var(--r);
+}
+.esqueleto-linea { height: 10px; margin-bottom: 7px; }

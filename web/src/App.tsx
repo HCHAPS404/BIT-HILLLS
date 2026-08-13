@@ -1,6 +1,7 @@
 /**
  * MAREA — instrumento, no dashboard.
- * Mapa a sangre completa; los datos van sobrepuestos como HUD con líneas de 1px.
+ * Escritorio: mapa a sangre completa, datos sobrepuestos como HUD con líneas de 1px.
+ * Móvil: scroll vertical normal, mapa arriba y paneles debajo (ver tokens.css).
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -8,16 +9,27 @@ import { MapaRiesgo } from './components/MapaRiesgo';
 import { RelojMarea } from './components/RelojMarea';
 import { ContadorVER } from './components/ContadorVER';
 import { PanelSupuestos } from './components/PanelSupuestos';
+import { Tornado } from './components/Tornado';
 import {
   getZonas, getRiesgo, getEscenarios, simular,
   COLOR_BANDA, copCorto, type GeoResp, type DetalleZona,
 } from './lib/api';
 import { T, type Idioma } from './i18n';
 
+const Esqueleto = ({ n = 4, alto = 10 }: { n?: number; alto?: number }) => (
+  <div>
+    {Array.from({ length: n }, (_, i) => (
+      <div key={i} className="esqueleto esqueleto-linea"
+        style={{ height: alto, width: `${100 - (i % 3) * 14}%`, animationDelay: `${i * 0.09}s` }} />
+    ))}
+  </div>
+);
+
 export default function App() {
   const [geo, setGeo] = useState<GeoResp | null>(null);
   const [sel, setSel] = useState<string | null>('bocagrande');
   const [detalle, setDetalle] = useState<DetalleZona | null>(null);
+  const [cargandoDetalle, setCargandoDetalle] = useState(true);
   const [escenarios, setEscenarios] = useState<any[]>([]);
   const [escenario, setEscenario] = useState<string>('');
   const [temporada, setTemporada] = useState<'alta' | 'media' | 'baja'>('alta');
@@ -45,23 +57,26 @@ export default function App() {
 
   useEffect(() => {
     if (!sel) return;
-    getRiesgo(sel, escenario || undefined, temporada).then(setDetalle).catch(() => setDetalle(null));
+    setCargandoDetalle(true);
+    getRiesgo(sel, escenario || undefined, temporada)
+      .then(setDetalle)
+      .catch(() => setDetalle(null))
+      .finally(() => setCargandoDetalle(false));
   }, [sel, escenario, temporada]);
 
   const meta = geo?.metadata;
   const verTotal = geo?.features.reduce((a, f) => a + f.properties.ver_cop, 0) ?? 0;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, overflow: 'hidden' }}>
-      <MapaRiesgo datos={geo} seleccion={sel} onSeleccion={setSel} />
+    <div className="layout">
+      <div className="capa-mapa">
+        <MapaRiesgo datos={geo} seleccion={sel} onSeleccion={setSel} />
+      </div>
 
       {/* ─── BARRA SUPERIOR ─── */}
-      <header style={{
-        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
-        display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
-        padding: '10px 14px', background: 'linear-gradient(180deg, rgba(10,20,32,.96), rgba(10,20,32,.72) 70%, transparent)',
-        borderBottom: 'var(--linea)',
-      }}>
+      {/* Posicionamiento en tokens.css, NO inline: el inline le ganaría a la
+          media query de móvil y la barra volvería a tapar el mapa. */}
+      <header className="barra-sup">
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
           <span style={{ fontSize: 21, fontWeight: 800, letterSpacing: '-0.03em' }}>MAREA</span>
           <span className="rotulo" style={{ maxWidth: 210, lineHeight: 1.3 }}>{t.subtitulo}</span>
@@ -75,6 +90,7 @@ export default function App() {
             </span>
           )}
           {meta?.degradado && <span className="badge badge-simulado latido">{t.degradado}</span>}
+          {recalc && <span className="badge badge-vivo latido">{t.recalculando}</span>}
 
           <select value={escenario} onChange={(e) => setEscenario(e.target.value)}
             style={{ fontSize: 10, padding: '4px 7px', letterSpacing: '0.06em' }}>
@@ -98,7 +114,7 @@ export default function App() {
 
       {meta?.avisos?.length ? (
         <div className="simulado" style={{
-          position: 'absolute', top: 54, left: '50%', transform: 'translateX(-50%)', zIndex: 11,
+          position: 'absolute', top: 54, left: '50%', transform: 'translateX(-50%)', zIndex: 13,
           border: '1px solid var(--alerta)', background: 'var(--profundo)', padding: '5px 11px',
           maxWidth: 'min(560px, 92vw)',
         }}>
@@ -109,16 +125,23 @@ export default function App() {
       ) : null}
 
       {error && (
-        <div style={{ position: 'absolute', top: 54, left: '50%', transform: 'translateX(-50%)', zIndex: 11,
+        <div style={{ position: 'absolute', top: 54, left: '50%', transform: 'translateX(-50%)', zIndex: 13,
           border: '1px solid var(--critico)', background: 'var(--profundo)', padding: '5px 11px' }}>
           <span className="rotulo" style={{ color: 'var(--critico)', textTransform: 'none' }}>API: {error}</span>
         </div>
       )}
 
       {/* ─── HUD IZQUIERDA · ranking de zonas ─── */}
-      <aside style={{ position: 'absolute', left: 12, top: 66, bottom: 12, width: 272, zIndex: 10, display: 'flex', flexDirection: 'column', gap: 9 }}>
-        <div className="panel milimetrado" style={{ padding: 10, overflowY: 'auto' }}>
+      <aside className="hud hud-izq">
+        <div className="panel milimetrado" style={{ padding: 10 }}>
           <div className="rotulo" style={{ color: 'var(--cian)', marginBottom: 8 }}>{t.zonas}</div>
+
+          {!geo && !error && <Esqueleto n={6} alto={30} />}
+
+          {geo?.features.length === 0 && (
+            <div className="rotulo" style={{ textTransform: 'none', lineHeight: 1.5 }}>{t.sinZonas}</div>
+          )}
+
           {geo?.features.map((f) => {
             const p = f.properties;
             const activo = p.id === sel;
@@ -147,6 +170,7 @@ export default function App() {
               </button>
             );
           })}
+
           <div className="rotulo" style={{ fontSize: 8.5, marginTop: 6, textTransform: 'none', lineHeight: 1.4 }}>
             ◆ {t.turistica} · {t.osmNota}
           </div>
@@ -154,7 +178,24 @@ export default function App() {
       </aside>
 
       {/* ─── HUD DERECHA · detalle de zona ─── */}
-      <aside style={{ position: 'absolute', right: 12, top: 66, bottom: 12, width: 316, zIndex: 10, display: 'flex', flexDirection: 'column', gap: 9, overflowY: 'auto' }}>
+      <aside className="hud hud-der">
+        {cargandoDetalle && !detalle && (
+          <div className="panel" style={{ padding: 11 }}>
+            <div className="rotulo" style={{ color: 'var(--cian)', marginBottom: 9 }}>{t.cargando}</div>
+            <div className="esqueleto" style={{ height: 200, marginBottom: 9 }} />
+            <Esqueleto n={4} />
+          </div>
+        )}
+
+        {!cargandoDetalle && !detalle && (
+          <div className="panel" style={{ padding: 14 }}>
+            <div className="rotulo" style={{ color: 'var(--alerta)' }}>{t.sinDetalle}</div>
+            <div className="rotulo" style={{ marginTop: 6, textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5 }}>
+              {t.sinDetalleAyuda}
+            </div>
+          </div>
+        )}
+
         {detalle && (
           <>
             <div className={`panel ${detalle.simulado ? 'simulado' : ''}`} style={{ padding: 11 }}>
@@ -192,6 +233,8 @@ export default function App() {
                 ))}
               </div>
             </div>
+
+            <Tornado filas={detalle.sensibilidad} />
 
             <PanelSupuestos onCambio={setOverrides} verTotal={verTotal} recalculando={recalc} />
           </>

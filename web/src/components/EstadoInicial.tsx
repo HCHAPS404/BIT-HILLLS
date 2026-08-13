@@ -14,8 +14,7 @@ interface Props {
 export function EstadoInicial({ idioma, simulado, onProbar }: Props) {
   const t = T[idioma];
   return (
-    <div className="panel" style={{ padding: 'var(--esp-6)' }}>
-      <div className="rotulo" style={{ color: 'var(--seco)', marginBottom: 'var(--esp-4)' }}>{t.hoyVerde}</div>
+    <>
       <p className="prosa" style={{ margin: 0 }}>
         {simulado ? t.verdeEscenario : t.verdeVivo}
       </p>
@@ -28,6 +27,6 @@ export function EstadoInicial({ idioma, simulado, onProbar }: Props) {
           {t.probarAguacero}
         </button>
       )}
-    </div>
+    </>
   );
 }

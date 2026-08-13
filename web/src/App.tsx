@@ -191,11 +191,19 @@ export default function App() {
       {/* ─── HUD IZQUIERDA · ranking de zonas ─── */}
       <aside className="hud hud-izq">
         {todoVerde && (
-          <EstadoInicial
-            idioma={idioma}
-            simulado={!!meta?.simulado}
-            onProbar={() => setEscenario('aguacero_marea_alta')}
-          />
+          <SeccionColapsable
+            id="hoy-verde"
+            titulo={t.hoyVerde}
+            defaultAbierta
+            tituloColor="var(--seco)"
+            resumen={t.verdeResumen}
+          >
+            <EstadoInicial
+              idioma={idioma}
+              simulado={!!meta?.simulado}
+              onProbar={() => setEscenario('aguacero_marea_alta')}
+            />
+          </SeccionColapsable>
         )}
 
         <SeccionColapsable

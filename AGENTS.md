@@ -21,10 +21,10 @@ cd web && npm install && npm run dev   # :5173
 
 | Rama | Estado | Dueño de facto |
 |---|---|---|
-| `main` | Base mergeada (PR #1 + PR #2) + D1 activo con reportes conectados al motor + deploy real en vivo + CI/CD | tronco |
+| `main` | Base mergeada (PR #1 + #2 + #3) + D1 activo con reportes y visión conectados al motor + deploy real en vivo + CI/CD | tronco |
 | `feat/marea-base` | Al día con `main` (sus 2 commits pendientes ya se mergearon vía PR #2) | Andres (Sidechain07) — activo, no tocar sin avisarle |
-| `feat/vision-canal` | Atrás de `main` (le falta el pulido de UI, el CI/CD y el wiring de reportes). Aporta `api/src/adapters/vision.ts`, sin conectar a nada | huérfana, libre para retomar |
-| `feat/fontumi` | Atrás de `main` (mismo gap). Aporta `api/src/services/notify.ts`, sin conectar a nada | huérfana, libre para retomar |
+| `feat/vision-canal` | Mergeada a `main` vía PR #3 (2026-08-13). Rama remota se dejó igual, no se borró. | resuelta |
+| `feat/fontumi` | Atrás de `main` (le falta el pulido de UI, el CI/CD, y el wiring de reportes/AI). Aporta `api/src/services/notify.ts`, sin conectar a nada | huérfana, libre para retomar |
 
 **Deploy (Cloudflare, cuenta `helmut.chs@gmail.com`, account id
 `e75862195de36f76657bda6bef14ec71`):**
@@ -33,6 +33,7 @@ cd web && npm install && npm run dev   # :5173
 - Web (Pages, proyecto `marea`): `https://marea-drq.pages.dev` — funcionando, CI/CD ok.
 - CI/CD: `.github/workflows/deploy.yml`, dispara en push a `main`. Secrets/variables ya están puestos en el repo de GitHub (`CLOUDFLARE_API_TOKEN` con permisos Workers Scripts:Edit + Cloudflare Pages:Edit, `CLOUDFLARE_ACCOUNT_ID`, `VITE_API`) — confirmado funcionando repetidas veces el 2026-08-13. Si algo falla más adelante, probablemente sea el token expirado/rotado, no un problema del workflow.
 - D1: **creado y activo** (`database_id` en `api/wrangler.jsonc`, database name `marea`). Schema aplicado en remoto.
+- AI: **binding activo** (`"ai": { "binding": "AI" }` en `wrangler.jsonc`). Modelo `@cf/llava-hf/llava-1.5-7b-hf` confirmado disponible en la cuenta.
 
 ## Gaps de integración reales (no son solo TODOs de comentario)
 
@@ -44,14 +45,11 @@ Verificado leyendo el código, no asumido:
    y `evaluate.ts` los usa para la señal de obstrucción. Verificado
    end-to-end en producción. `reportes` ahora tiene columnas `confianza`
    y `pendiente_revision`, listas para que `vision-canal` las llene.
-2. **`vision.ts` (rama `feat/vision-canal`) no está conectado a nada.**
-   Falta: binding `"ai": { "binding": "AI" }` en `wrangler.jsonc`, y que
-   `POST /api/reportes` reciba una foto real (hoy solo acepta un
-   `severidad` numérico puesto por el cliente, no una imagen) y llame
-   `clasificarCanal()`. Ya NO hace falta reimplementar la agregación de
-   reportes — usa `leerReportesRecientes`/`obstruccionDesdeReportes` de
-   `api/src/adapters/reportes.ts` (en `main`), no la copia que trae
-   `vision.ts` en su propia rama.
+2. ~~`vision.ts` no está conectado a nada~~ — **resuelto 2026-08-13**
+   (PR #3). `POST /api/reportes` acepta `foto_base64`; con binding AI
+   disponible clasifica con `clasificarCanal()` (timeout de 20s — sin
+   esto una imagen degenerada cuelga la respuesta indefinidamente,
+   reproducido en pruebas). Verificado end-to-end en producción.
 3. **`notify.ts` (rama `feat/fontumi`) no está conectado a nada.**
    El cron `scheduled()` en `index.ts` calcula zonas críticas pero nunca
    llama a un `Notificador`. No existe endpoint para dar de alta
@@ -78,14 +76,24 @@ Verificado leyendo el código, no asumido:
   hace falta automatizar algo así, usar la API HTTP de Cloudflare
   directamente con el `oauth_token` guardado en
   `~/.config/.wrangler/config/default.toml`, no el CLI.
+- `wrangler` v3.114 (la versión fijada en `api/package.json`) da `fetch
+  failed` intermitente al desplegar en este entorno; `npx wrangler@4`
+  funciona sin problema. Si `npm run deploy` falla así, probar
+  `npx wrangler@4 deploy` directo antes de asumir que algo más está roto.
+- Workers AI: una imagen degenerada (ej. 1×1 px) puede colgar el modelo
+  indefinidamente — reproducido incluso llamando `/ai/run/...` directo
+  por la API REST de Cloudflare, sin pasar por el Worker. Cualquier
+  llamada a `ai.run()` necesita un timeout explícito (ver `conTimeout()`
+  en `adapters/vision.ts`); con una imagen bien formada responde en
+  segundos.
 
 ## Pendiente, priorizado
 
 1. Rotar el `CLOUDFLARE_API_TOKEN` si en algún momento se compartió en texto plano fuera de GitHub Secrets.
-2. Rebasar `feat/vision-canal` y `feat/fontumi` sobre `main` (les falta el pulido de UI, el CI/CD y el wiring de reportes ya resuelto).
-3. Cerrar el gap #2 de la sección anterior: wiring de `vision.ts` (binding AI + `POST /api/reportes` con foto real).
-4. Cerrar el gap #3: wiring de `notify.ts` + endpoint de suscriptores.
-5. Calibración del modelo IRI contra datos de OAGRD/ERA5 (ver README, sección "Honestidad del modelo").
+2. Rebasar `feat/fontumi` sobre `main` (le falta el pulido de UI, el CI/CD y el wiring de reportes/AI ya resueltos en `main`).
+3. Cerrar el gap #3 de la sección anterior: wiring de `notify.ts` + endpoint de suscriptores.
+4. Calibración del modelo IRI contra datos de OAGRD/ERA5 (ver README, sección "Honestidad del modelo").
+5. Opcional: guardar la foto del reporte en R2 para historial visual.
 
 ## Resuelto
 
@@ -93,3 +101,4 @@ Verificado leyendo el código, no asumido:
 - ~~D1 creado y schema aplicado~~ — 2026-08-13
 - ~~Reportes ciudadanos conectados al motor de riesgo~~ — 2026-08-13
 - ~~Fix de mapa en blanco (re-entrancia) + contraste WCAG~~ — mergeado vía PR #2, 2026-08-13
+- ~~Clasificador de visión conectado a POST /api/reportes~~ — mergeado vía PR #3, 2026-08-13

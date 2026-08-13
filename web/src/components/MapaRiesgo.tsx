@@ -146,7 +146,7 @@ export function MapaRiesgo({ datos, seleccion, onSeleccion, tema }: Props) {
       m.addLayer({
         id: 'zonas-rotulo', type: 'symbol', source: 'zonas',
         layout: {
-          'text-field': ['concat', ['get', 'nombre'], '  ', ['to-string', ['get', 'iri']]],
+          'text-field': ['concat', ['get', 'nombre'], '\nIRI ', ['to-string', ['get', 'iri']]],
           'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
           'text-size': 11.5, 'text-letter-spacing': 0.08, 'text-anchor': 'center',
         },

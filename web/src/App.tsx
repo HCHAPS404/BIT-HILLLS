@@ -262,6 +262,11 @@ export default function App() {
             return `${z.nombre} · ${Math.round(z.iri)}/100 · ${t.bandaDe[z.banda]}`;
           })()}
         >
+          <div className="prosa-nota" style={{ marginBottom: 'var(--esp-5)' }}>
+            <Definicion termino={t.estado} titulo={t.estado}>{t.leyendaBandas}</Definicion>
+            {' · '}{t.bandaDe.verde} · {t.bandaDe.amarillo} · {t.bandaDe.naranja} · {t.bandaDe.rojo}
+          </div>
+
           {!geo && !error && <Esqueleto n={6} alto={30} />}
 
           {geo?.features.length === 0 && (
@@ -293,8 +298,8 @@ export default function App() {
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'var(--esp-3)', gap: 'var(--esp-4)' }}>
-                  <span className="rotulo" style={{ color: COLOR_BANDA[p.banda], textTransform: 'none', letterSpacing: '0.04em' }}>
-                    {t.bandaDe[p.banda]}
+                  <span className="prosa-nota" style={{ color: COLOR_BANDA[p.banda] }}>
+                    {t.estado}: {t.bandaDe[p.banda]}
                   </span>
                   <Sparkline valores={p.serie_iri ?? []} color={COLOR_BANDA[p.banda]} />
                   <span className="num rotulo" style={{ fontSize: 'var(--texto-xs)', color: p.ver_cop > 0 ? 'var(--alerta)' : 'var(--papel-fant)' }}>

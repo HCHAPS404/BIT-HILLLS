@@ -65,6 +65,8 @@ export const T = {
     supuestos: 'supuestos del modelo',
     supuestosResumen: 'cada cifra con su fuente, editable',
     cartuchoCerrado: 'proyección · datum · sondas',
+    estado: 'estado',
+    leyendaBandas: 'Es el estado de alerta del barrio, no otro nombre. Nada 0–24 · vigila 25–49 · alerta 50–74 · crítico 75–100.',
     bandaDe: { verde: 'sin alerta', amarillo: 'vigilancia', naranja: 'alerta', rojo: 'crítico' },
   },
   en: {
@@ -125,6 +127,8 @@ export const T = {
     supuestos: 'model assumptions',
     supuestosResumen: 'each figure with its source, editable',
     cartuchoCerrado: 'projection · datum · soundings',
+    estado: 'status',
+    leyendaBandas: 'Alert status of the neighborhood, not another name. None 0–24 · watch 25–49 · alert 50–74 · critical 75–100.',
     bandaDe: { verde: 'no alert', amarillo: 'watch', naranja: 'alert', rojo: 'critical' },
   },
 } as const;

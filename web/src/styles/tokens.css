@@ -1,0 +1,152 @@
+/**
+ * MAREA — SISTEMA DE DISEÑO
+ *
+ * TESIS: esto no es un dashboard, es un INSTRUMENTO NÁUTICO.
+ * Carta de navegación, no panel administrativo.
+ *
+ * El día del evento van a existir seis dashboards con tarjetas redondeadas
+ * grises sobre slate-50, shadcn por defecto y un gráfico de barras, todos
+ * salidos del mismo prompt. La diferenciación no es decorativa: es la única
+ * forma de que el jurado recuerde cuál era el nuestro tres horas después.
+ *
+ * REGLAS QUE NO SE ROMPEN:
+ *   1. border-radius máximo 2px. Los instrumentos tienen esquinas rectas.
+ *   2. Cero sombras. La jerarquía se hace con líneas de 1px y contraste.
+ *   3. Todo número que sea DATO va en monoespaciada con tabular-nums.
+ *      Los dígitos no bailan al actualizarse.
+ *   4. Retícula de papel milimetrado en los paneles de datos.
+ *   5. El badge SIN CALIBRAR es visible, no escondido.
+ *      La honestidad forma parte de la estética.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+  /* ── Carta náutica de noche ── */
+  --abismo:      #0A1420;   /* fondo base */
+  --profundo:    #0F1E2E;   /* superficies */
+  --sonda:       #16283A;   /* bordes, retícula */
+  --sonda-alta:  #1F3A52;   /* bordes activos */
+  --papel:       #F2EDE3;   /* texto principal: papel de carta, NO blanco puro */
+  --papel-tenue: #8FA3B5;
+  --papel-fant:  #4A5F73;
+
+  /* ── Escala de alerta, tomada de cartas de marea, no de Bootstrap ── */
+  --seco:    #6FBF73;
+  --vigila:  #E8C34D;
+  --alerta:  #E8A33D;
+  --critico: #E5533D;
+
+  --cian:  #4EC9C0;   /* acento de dato vivo */
+  --marea: #3B82C4;
+
+  --linea: 1px solid var(--sonda);
+  --linea-viva: 1px solid var(--cian);
+
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --display: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
+
+  --r: 2px;  /* el único radio permitido */
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0; padding: 0; height: 100%;
+  background: var(--abismo);
+  color: var(--papel);
+  font-family: var(--display);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Todo dato numérico. Sin excepciones. */
+.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Etiquetas en versalitas, como en una carta náutica */
+.rotulo {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--papel-fant);
+  font-weight: 500;
+}
+
+/* Papel milimetrado: retícula sutil en paneles de datos */
+.milimetrado {
+  background-image:
+    linear-gradient(var(--sonda) 1px, transparent 1px),
+    linear-gradient(90deg, var(--sonda) 1px, transparent 1px);
+  background-size: 8px 8px;
+  background-position: -1px -1px;
+  opacity: 1;
+}
+.milimetrado::before {
+  content: ''; position: absolute; inset: 0;
+  background: inherit; opacity: 0.28; pointer-events: none;
+}
+
+.panel {
+  background: var(--profundo);
+  border: var(--linea);
+  border-radius: var(--r);
+  position: relative;
+}
+
+/* Banda diagonal para TODO lo que sea simulación. Nunca se disfraza de dato real. */
+.simulado {
+  background-image: repeating-linear-gradient(
+    45deg, transparent, transparent 6px,
+    rgba(232, 163, 61, 0.10) 6px, rgba(232, 163, 61, 0.10) 12px
+  );
+}
+
+.badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border: 1px solid currentColor;
+  border-radius: var(--r);
+  display: inline-block;
+}
+.badge-sin-calibrar { color: var(--alerta); }
+.badge-simulado     { color: var(--vigila); }
+.badge-vivo         { color: var(--cian); }
+
+/* Onda literal en el agua cuando entra una alerta */
+@keyframes onda {
+  0%   { transform: scale(0.35); opacity: 0.85; }
+  100% { transform: scale(2.6);  opacity: 0; }
+}
+.onda {
+  animation: onda 2.4s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+  transform-origin: center;
+}
+
+@keyframes latido { 0%,100% { opacity: 1 } 50% { opacity: 0.35 } }
+.latido { animation: latido 1.8s ease-in-out infinite; }
+
+button, input, select {
+  font-family: var(--mono);
+  border-radius: var(--r);
+  background: var(--abismo);
+  color: var(--papel);
+  border: var(--linea);
+}
+button { cursor: pointer; transition: border-color 120ms, color 120ms; }
+button:hover { border-color: var(--cian); color: var(--cian); }
+
+input[type="range"] { accent-color: var(--cian); background: transparent; border: none; }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--abismo); }
+::-webkit-scrollbar-thumb { background: var(--sonda-alta); border-radius: 0; }
+
+/* La UI nunca desborda horizontalmente */
+.scroll-x { overflow-x: auto; }

@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "marea-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "observability": { "enabled": true },
+
+  // Evalúa todas las zonas cada 15 minutos.
+  "triggers": { "crons": ["*/15 * * * *"] },
+
+  // D1 es OPCIONAL. La API funciona sin base de datos (calcula en vivo).
+  // Cuando exista, descomentar y pegar el database_id de `npm run db:create`.
+  // "d1_databases": [
+  //   { "binding": "DB", "database_name": "marea", "database_id": "PEGAR_AQUI" }
+  // ],
+
+  "vars": {
+    "TEMPORADA": "alta"
+  }
+}

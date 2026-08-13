@@ -20,6 +20,7 @@ interface Props {
   version: string;
   zonas: number;
   establecimientos: number;
+  etiquetaCerrado?: string;
 }
 
 const Fila = ({ k, v, acento }: { k: string; v: string; acento?: string }) => (
@@ -29,8 +30,8 @@ const Fila = ({ k, v, acento }: { k: string; v: string; acento?: string }) => (
   </div>
 );
 
-export function Cartucho({ fuente, escenarioNombre, generado, version, zonas, establecimientos }: Props) {
-  const [abierto, setAbierto] = useState(true);
+export function Cartucho({ fuente, escenarioNombre, generado, version, zonas, establecimientos, etiquetaCerrado = 'proyección · datum · sondas' }: Props) {
+  const [abierto, setAbierto] = useState(false);
 
   const t = new Date(generado);
   const bogota = new Date(t.getTime() - 5 * 3600_000);
@@ -39,7 +40,7 @@ export function Cartucho({ fuente, escenarioNombre, generado, version, zonas, es
   if (!abierto) {
     return (
       <button className="cartucho-cerrado" onClick={() => setAbierto(true)}>
-        <span className="rotulo" style={{ fontSize: 'var(--texto-xs)' }}>▣ carta</span>
+        <span className="rotulo" style={{ fontSize: 'var(--texto-xs)' }}>{etiquetaCerrado}</span>
       </button>
     );
   }

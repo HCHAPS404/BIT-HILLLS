@@ -12,11 +12,16 @@ import { PanelSupuestos } from './components/PanelSupuestos';
 import { Tornado } from './components/Tornado';
 import { Cartucho } from './components/Cartucho';
 import { Sparkline } from './components/Sparkline';
-import { GlifoBanda, nombreBanda } from './components/GlifoBanda';
+import { GlifoBanda } from './components/GlifoBanda';
+import { LecturaZona, ComponentesZona } from './components/LecturaZona';
+import { EstadoInicial } from './components/EstadoInicial';
+import { SeccionColapsable } from './components/SeccionColapsable';
+import { Definicion } from './components/Definicion';
 import {
   getZonas, getRiesgo, getEscenarios, simular,
   COLOR_BANDA, copCorto, type GeoResp, type DetalleZona,
 } from './lib/api';
+import { DEFINICIONES } from './lib/lectura';
 import { T, type Idioma } from './i18n';
 
 const Esqueleto = ({ n = 4, alto = 10 }: { n?: number; alto?: number }) => (
@@ -45,6 +50,7 @@ export default function App() {
     () => (localStorage.getItem('marea:tema') as 'noche' | 'dia') ?? 'noche',
   );
   const t = T[idioma];
+  const def = DEFINICIONES[idioma];
 
   useEffect(() => {
     document.documentElement.setAttribute('data-tema', tema);
@@ -78,11 +84,15 @@ export default function App() {
 
   const meta = geo?.metadata;
   const verTotal = geo?.features.reduce((a, f) => a + f.properties.ver_cop, 0) ?? 0;
+  const todoVerde = !!geo && geo.features.length > 0 && geo.features.every((f) => f.properties.banda === 'verde');
 
   return (
     <div className="layout">
       <div className="capa-mapa">
         <MapaRiesgo datos={geo} seleccion={sel} onSeleccion={setSel} tema={tema} />
+        {meta?.simulado && (
+          <div className="sello-escenario" role="status">{t.selloEscenario}</div>
+        )}
       </div>
 
       {/* ─── BARRA SUPERIOR ─── */}
@@ -98,7 +108,7 @@ export default function App() {
           <span className="badge badge-sin-calibrar">{t.sinCalibrar}</span>
           {meta && (
             <span className={`badge ${meta.simulado ? 'badge-simulado' : 'badge-vivo'}`}>
-              {meta.simulado ? t.simulado : t.vivo}
+              {meta.simulado ? t.simuladoLargo : t.vivo}
             </span>
           )}
           {meta?.degradado && <span className="badge badge-simulado latido">{t.degradado}</span>}
@@ -124,16 +134,22 @@ export default function App() {
 
           {/* Modo día / noche — un puente de barco hace exactamente esto. */}
           <button onClick={() => setTema(tema === 'noche' ? 'dia' : 'noche')}
-            title={tema === 'noche' ? t.modoDia : t.modoNoche}
+            aria-label={tema === 'noche' ? t.modoDia : t.modoNoche}
             style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)', letterSpacing: '0.08em' }}>
             {tema === 'noche' ? '\u25D1 ' + t.dia : '\u25D0 ' + t.noche}
           </button>
         </div>
       </header>
 
+      {meta?.simulado && (
+        <div className="aviso-escenario" role="status">
+          {t.avisoEscenario}
+        </div>
+      )}
+
       {meta?.avisos?.length ? (
         <div className="simulado" style={{
-          position: 'absolute', top: 54, left: '50%', transform: 'translateX(-50%)', zIndex: 13,
+          position: 'absolute', top: meta.simulado ? 96 : 54, left: '50%', transform: 'translateX(-50%)', zIndex: 13,
           border: '1px solid var(--alerta)', background: 'var(--profundo)', padding: 'var(--esp-2) var(--esp-5)',
           maxWidth: 'min(560px, 92vw)',
         }}>
@@ -158,11 +174,20 @@ export default function App() {
           version={meta.version_modelo}
           zonas={geo?.features.length ?? 0}
           establecimientos={geo?.features.reduce((a, f) => a + f.properties.establecimientos, 0) ?? 0}
+          etiquetaCerrado={t.cartuchoCerrado}
         />
       )}
 
       {/* ─── HUD IZQUIERDA · ranking de zonas ─── */}
       <aside className="hud hud-izq">
+        {todoVerde && (
+          <EstadoInicial
+            idioma={idioma}
+            simulado={!!meta?.simulado}
+            onProbar={() => setEscenario('aguacero_marea_alta')}
+          />
+        )}
+
         <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
           <div className="rotulo" style={{ color: 'var(--acento)', marginBottom: 'var(--esp-4)' }}>{t.zonas}</div>
 
@@ -188,17 +213,19 @@ export default function App() {
                     {p.nombre}
                     {p.es_turistica && <span style={{ color: 'var(--acento)', fontSize: 'var(--texto-xs)' }}> ◆</span>}
                   </span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--esp-2)' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 'var(--esp-2)' }}>
                     <GlifoBanda banda={p.banda} color={COLOR_BANDA[p.banda]} />
                     <span className="num" style={{ fontSize: 'var(--texto-lg)', fontWeight: 700, color: COLOR_BANDA[p.banda] }}>
                       {p.iri.toFixed(0)}
                     </span>
-                    <span className="sr-only">{nombreBanda(p.banda)}</span>
+                    <span className="rotulo" style={{ fontSize: 'var(--texto-xs)' }}>/100</span>
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'var(--esp-2)', gap: 'var(--esp-4)' }}>
+                  <span className="rotulo" style={{ color: COLOR_BANDA[p.banda], textTransform: 'none', letterSpacing: '0.04em' }}>
+                    {t.bandaDe[p.banda]}
+                  </span>
                   <Sparkline valores={p.serie_iri ?? []} color={COLOR_BANDA[p.banda]} />
-                  <span className="rotulo" style={{ fontSize: 'var(--texto-xs)' }}>{p.establecimientos} est.</span>
                   <span className="num rotulo" style={{ fontSize: 'var(--texto-xs)', color: p.ver_cop > 0 ? 'var(--alerta)' : 'var(--papel-fant)' }}>
                     {copCorto(p.ver_cop)}
                   </span>
@@ -235,48 +262,72 @@ export default function App() {
         {detalle && (
           <>
             <div className={`panel ${detalle.simulado ? 'simulado' : ''}`} style={{ padding: 'var(--esp-5)' }}>
-              <h2 style={{ fontSize: 'var(--texto-lg)', fontWeight: 700, letterSpacing: '-0.01em', margin: 0 }}>{detalle.zona.nombre}</h2>
-              <div className="rotulo" style={{ textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5, marginTop: 'var(--esp-2)' }}>
-                {detalle.zona.nota}
+              <LecturaZona detalle={detalle} idioma={idioma} />
+
+              <div style={{ marginTop: 'var(--esp-5)', borderTop: 'var(--linea)', paddingTop: 'var(--esp-4)' }}>
+                <ContadorVER
+                  valor={detalle.ver_cop}
+                  horas={detalle.horas_interrupcion + 2}
+                  etiqueta={t.ver}
+                  rotulo={
+                    <Definicion termino={t.ver} titulo={def.VER.titulo}>{def.VER.cuerpo}</Definicion>
+                  }
+                  nota={detalle.ver_cop > 0 ? t.verNotaActivo : t.verNotaCero}
+                />
+                {detalle.ver_cop > 0 && (
+                <div style={{ marginTop: 'var(--esp-5)' }}>
+                  {detalle.desglose.filter((d) => d.establecimientos > 0).map((d) => (
+                    <div key={d.categoria} style={{ marginBottom: 'var(--esp-2)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--texto-xs)' }}>
+                        <span className="rotulo" style={{ fontSize: 'var(--texto-xs)' }}>{d.categoria} · {d.establecimientos}</span>
+                        <span className="num" style={{ fontSize: 'var(--texto-xs)', color: 'var(--papel-tenue)' }}>{copCorto(d.cop_total)}</span>
+                      </div>
+                      <div style={{ height: 3, background: 'var(--sonda)', marginTop: 'var(--esp-1)' }}>
+                        <div style={{ height: '100%', width: `${d.pct}%`, background: 'var(--alerta)' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                )}
               </div>
+
               {/* Doble bisel: el reloj es el elemento héroe y va montado como
                   una placa dentro de su bandeja, no plano sobre el panel. */}
               <div className="bisel" style={{ marginTop: 'var(--esp-5)' }}>
                 <div className="nucleo">
-                  <RelojMarea serie={detalle.serie} ventanaCritica={detalle.ventana_critica} pico={detalle.pico} simulado={detalle.simulado} />
+                  <RelojMarea
+                    serie={detalle.serie}
+                    ventanaCritica={detalle.ventana_critica}
+                    pico={detalle.pico}
+                    simulado={detalle.simulado}
+                    rotuloVentana={
+                      <span className="rotulo" style={{ color: 'var(--critico)' }}>
+                        <Definicion termino={idioma === 'en' ? 'critical window' : 'ventana crítica'} titulo={def.ventana.titulo}>
+                          {def.ventana.cuerpo}
+                        </Definicion>
+                        &nbsp;
+                      </span>
+                    }
+                  />
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 'var(--esp-3)', marginTop: 'var(--esp-5)', borderTop: 'var(--linea)', paddingTop: 'var(--esp-4)' }}>
-                {([['R', detalle.pico.componentes.R, t.cR], ['D', detalle.pico.componentes.D, t.cD],
-                   ['O', detalle.pico.componentes.O, t.cO], ['S', detalle.pico.componentes.S, t.cS]] as const).map(([k, v, lbl]) => (
-                  <div key={k}>
-                    <div className="rotulo" style={{ fontSize: 'var(--texto-xs)' }}>{k} · {lbl}</div>
-                    <div className="num" style={{ fontSize: 'var(--texto-md)', fontWeight: 700, color: 'var(--acento)' }}>{v.toFixed(2)}</div>
-                  </div>
-                ))}
-              </div>
+
+              <ComponentesZona detalle={detalle} idioma={idioma} />
             </div>
 
-            <div className="panel" style={{ padding: 'var(--esp-5)' }}>
-              <ContadorVER valor={detalle.ver_cop} horas={detalle.horas_interrupcion + 2} etiqueta={t.ver} />
-              <div style={{ marginTop: 'var(--esp-5)', borderTop: 'var(--linea)', paddingTop: 'var(--esp-4)' }}>
-                {detalle.desglose.filter((d) => d.establecimientos > 0).map((d) => (
-                  <div key={d.categoria} style={{ marginBottom: 'var(--esp-2)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--texto-xs)' }}>
-                      <span className="rotulo" style={{ fontSize: 'var(--texto-xs)' }}>{d.categoria} · {d.establecimientos}</span>
-                      <span className="num" style={{ fontSize: 'var(--texto-xs)', color: 'var(--papel-tenue)' }}>{copCorto(d.cop_total)}</span>
-                    </div>
-                    <div style={{ height: 3, background: 'var(--sonda)', marginTop: 'var(--esp-1)' }}>
-                      <div style={{ height: '100%', width: `${d.pct}%`, background: 'var(--alerta)' }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <SeccionColapsable id="sensibilidad" titulo={t.sensibilidad} resumen={t.sensibilidadResumen}>
+              <Tornado
+                filas={detalle.sensibilidad}
+                sinCaja
+                definicionEta={
+                  <Definicion termino="η" titulo={def.eta.titulo}>{def.eta.cuerpo}</Definicion>
+                }
+              />
+            </SeccionColapsable>
 
-            <Tornado filas={detalle.sensibilidad} />
-
-            <PanelSupuestos onCambio={setOverrides} verTotal={verTotal} recalculando={recalc} />
+            <SeccionColapsable id="supuestos" titulo={t.supuestos} resumen={t.supuestosResumen}>
+              <PanelSupuestos onCambio={setOverrides} verTotal={verTotal} recalculando={recalc} sinCaja />
+            </SeccionColapsable>
           </>
         )}
       </aside>

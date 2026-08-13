@@ -15,6 +15,7 @@
  * El dato ya venía calculado en GET /api/riesgo/:zona y no se estaba pintando.
  */
 
+import type { ReactNode } from 'react';
 import { copCorto } from '../lib/api';
 
 interface Fila {
@@ -34,16 +35,20 @@ const NOMBRE: Record<string, string> = {
   'horas_recuperacion': 'Horas de recuperación',
 };
 
-export function Tornado({ filas }: { filas: Fila[] }) {
+export function Tornado({ filas, sinCaja, definicionEta }: { filas: Fila[]; sinCaja?: boolean; definicionEta?: React.ReactNode }) {
   const utiles = filas.filter((f) => f.amplitud_pct !== 0);
   if (!utiles.length) {
+    const vacio = (
+      <div className="rotulo" style={{ textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5 }}>
+        Sin interrupción prevista, el VER es 0 y ningún supuesto lo mueve.
+        Cambia a un escenario con aguacero para ver de qué depende el número.
+      </div>
+    );
+    if (sinCaja) return vacio;
     return (
       <div className="panel" style={{ padding: 'var(--esp-5)' }}>
         <div className="rotulo" style={{ color: 'var(--acento)' }}>sensibilidad</div>
-        <div className="rotulo" style={{ marginTop: 'var(--esp-3)', textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5 }}>
-          Sin interrupción prevista, el VER es 0 y ningún supuesto lo mueve.
-          Cambia a un escenario con aguacero para ver de qué depende el número.
-        </div>
+        <div style={{ marginTop: 'var(--esp-3)' }}>{vacio}</div>
       </div>
     );
   }
@@ -52,11 +57,11 @@ export function Tornado({ filas }: { filas: Fila[] }) {
   // Escala común para todas las barras: se comparan entre sí, no cada una consigo misma.
   const span = Math.max(...utiles.map((f) => Math.max(Math.abs(f.alto - base), Math.abs(base - f.bajo))));
 
-  return (
-    <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
+  const cuerpo = (
+    <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <div className="rotulo" style={{ color: 'var(--acento)' }}>de qué depende el número</div>
-        <span className="rotulo" style={{ fontSize: 'var(--texto-xs)' }}>±30 %</span>
+        {!sinCaja && <div className="rotulo" style={{ color: 'var(--acento)' }}>de qué depende el número</div>}
+        <span className="rotulo" style={{ fontSize: 'var(--texto-xs)' }}>±30 %{definicionEta ? <> · {definicionEta}</> : null}</span>
       </div>
 
       <div style={{ marginTop: 'var(--esp-4)' }}>
@@ -126,6 +131,13 @@ export function Tornado({ filas }: { filas: Fila[] }) {
           );
         })()}
       </div>
+    </>
+  );
+
+  if (sinCaja) return cuerpo;
+  return (
+    <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
+      {cuerpo}
     </div>
   );
 }

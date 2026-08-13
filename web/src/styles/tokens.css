@@ -309,6 +309,169 @@ input[type="range"] { accent-color: var(--acento); background: transparent; bord
 .hud-izq { left: 12px; width: 272px; }
 .hud-der { right: 12px; width: 316px; }
 
+/* La banda de escenario empuja el HUD hacia abajo. :has evita un
+   segundo layout mode y no toca el mapa. */
+.layout:has(.aviso-escenario) .hud { top: 102px; }
+
+.aviso-escenario {
+  position: absolute; top: 58px; left: 0; right: 0; z-index: 12;
+  padding: var(--esp-2) var(--esp-5);
+  background-color: var(--profundo);
+  border-bottom: 1px solid var(--vigila);
+  color: var(--vigila);
+  font-family: var(--mono);
+  font-size: var(--texto-xs);
+  letter-spacing: 0.04em;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.sello-escenario {
+  position: absolute; top: 78px; left: 50%; transform: translateX(-50%);
+  z-index: 5; pointer-events: none;
+  font-family: var(--mono); font-size: var(--texto-xs);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--vigila);
+  background-color: color-mix(in srgb, var(--abismo) 82%, transparent);
+  padding: var(--esp-2) var(--esp-4);
+  border: 1px solid var(--vigila);
+}
+.layout:has(.aviso-escenario) .sello-escenario { top: 114px; }
+
+.frase-estado {
+  font-size: var(--texto-lg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  margin: var(--esp-2) 0 0;
+}
+.frase-detalle {
+  font-size: var(--texto-sm);
+  line-height: 1.5;
+  margin: var(--esp-2) 0 0;
+  color: var(--papel);
+}
+.accion-recomendada {
+  font-size: var(--texto-sm);
+  line-height: 1.45;
+  margin-top: var(--esp-4);
+  padding: var(--esp-4);
+  background-color: var(--abismo);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--papel) 9%, transparent);
+  border-radius: var(--r);
+}
+
+button.cabecera-colapso {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--esp-4);
+  border-radius: 0;
+  background: none;
+  background-color: transparent;
+  box-shadow: none;
+  padding: 0;
+  text-align: left;
+}
+button.cabecera-colapso:hover { box-shadow: none; color: var(--acento); }
+button.cabecera-colapso:active { transform: none; }
+
+.definicion { position: relative; display: inline; }
+button.termino {
+  display: inline;
+  width: auto; height: auto;
+  padding: 0; margin: 0;
+  border-radius: 0;
+  background: none;
+  background-color: transparent;
+  box-shadow: none;
+  border: none;
+  border-bottom: 1px dotted var(--papel-fant);
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: help;
+}
+button.termino:hover { box-shadow: none; color: var(--acento); }
+button.termino:active { transform: none; }
+.definicion-panel {
+  position: absolute;
+  left: 0;
+  top: calc(100% + var(--esp-2));
+  z-index: 30;
+  width: 248px;
+  max-width: 72vw;
+  padding: var(--esp-4);
+  background-color: var(--profundo);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--papel) 12%, transparent),
+    0 8px 24px color-mix(in srgb, var(--abismo) 55%, transparent);
+  border-radius: var(--r);
+  /* El término vive dentro de .rotulo: sin esto el recuadro hereda
+     versalitas y el cuerpo se vuelve ilegible. */
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--display);
+  font-weight: 400;
+}
+
+.escala-iri-pista {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  height: 8px;
+  border: var(--linea);
+}
+.escala-iri-tramo { min-width: 0; }
+.escala-iri-marca {
+  position: absolute;
+  top: -5px; bottom: -5px; width: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.escala-iri-punta {
+  display: block;
+  width: 2px; height: 100%;
+  background-color: var(--papel);
+  box-shadow: 0 0 0 1px var(--abismo);
+}
+.escala-iri-leyenda {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  margin-top: var(--esp-2);
+  font-family: var(--mono);
+  font-size: var(--texto-xs);
+  letter-spacing: 0.03em;
+}
+.escala-iri-ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--esp-1);
+  font-size: var(--texto-xs);
+  color: var(--papel-fant);
+}
+
+.aviso-whatsapp { margin-top: var(--esp-3); }
+.aviso-whatsapp summary {
+  font-family: var(--mono);
+  font-size: var(--texto-xs);
+  color: var(--papel-fant);
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  list-style: none;
+}
+.aviso-whatsapp summary::-webkit-details-marker { display: none; }
+.aviso-whatsapp pre {
+  font-family: var(--mono);
+  font-size: var(--texto-xs);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  color: var(--papel-tenue);
+  margin: var(--esp-3) 0 0;
+}
+
 /* Escritorio: la barra flota sobre el mapa con fondo sólido.
    Ojo: esto vive en CSS y NO en estilo inline, porque el inline le ganaría
    a la media query de móvil y la barra seguiría tapando el mapa. */
@@ -392,6 +555,11 @@ button, select, input, .fila-zona {
   }
   .layout { display: flex; flex-direction: column; }
   .barra-sup { order: -1; }
+
+  .aviso-escenario { position: static; text-align: left; }
+  .layout:has(.aviso-escenario) .hud { top: auto; }
+  .sello-escenario, .layout:has(.aviso-escenario) .sello-escenario { top: 8px; }
+  .definicion-panel { width: min(248px, calc(100vw - 40px)); }
 }
 
 /* ── Esqueleto de carga: barra de sondaje recorriendo, no un spinner ── */

@@ -32,9 +32,10 @@ interface Props {
   onCambio: (overrides: any) => void;
   verTotal: number;
   recalculando: boolean;
+  sinCaja?: boolean;
 }
 
-export function PanelSupuestos({ onCambio, verTotal, recalculando }: Props) {
+export function PanelSupuestos({ onCambio, verTotal, recalculando, sinCaja }: Props) {
   const [meta, setMeta] = useState<Meta[]>([]);
   const [valores, setValores] = useState<any>(null);
   const [overrides, setOverrides] = useState<any>({});
@@ -56,11 +57,11 @@ export function PanelSupuestos({ onCambio, verTotal, recalculando }: Props) {
 
   const efectivo = (key: string) => leer(overrides, key) ?? leer(valores, key);
 
-  return (
-    <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
+  const cuerpo = (
+    <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 'var(--esp-2)' }}>
-        <div className="rotulo" style={{ color: 'var(--acento)' }}>supuestos del modelo</div>
-        <button onClick={reset} style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-1) var(--esp-3)', letterSpacing: '0.08em' }}>RESET</button>
+        {!sinCaja && <div className="rotulo" style={{ color: 'var(--acento)' }}>supuestos del modelo</div>}
+        <button onClick={reset} style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-1) var(--esp-3)', letterSpacing: '0.08em', marginLeft: 'auto' }}>RESET</button>
       </div>
 
       <div style={{ fontSize: 'var(--texto-sm)', color: 'var(--papel-tenue)', lineHeight: 1.5, marginBottom: 'var(--esp-4)' }}>
@@ -110,6 +111,13 @@ export function PanelSupuestos({ onCambio, verTotal, recalculando }: Props) {
           {copCorto(verTotal)} COP
         </div>
       </div>
+    </>
+  );
+
+  if (sinCaja) return cuerpo;
+  return (
+    <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
+      {cuerpo}
     </div>
   );
 }

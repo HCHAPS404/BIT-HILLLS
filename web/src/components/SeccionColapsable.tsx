@@ -18,7 +18,7 @@ export function SeccionColapsable({ id, titulo, resumen, children, defaultAbiert
   const btnId = `${id}-btn`;
 
   return (
-    <div className="panel" style={{ padding: 'var(--esp-5)' }}>
+    <div className="panel" style={{ padding: 'var(--esp-6)' }}>
       <button
         type="button"
         id={btnId}

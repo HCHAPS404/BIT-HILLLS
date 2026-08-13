@@ -209,7 +209,7 @@ export default function App() {
           />
         )}
 
-        <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
+        <div className="panel milimetrado" style={{ padding: 'var(--esp-6)' }}>
           <div className="rotulo" style={{ color: 'var(--acento)', marginBottom: 'var(--esp-4)' }}>{t.zonas}</div>
 
           {!geo && !error && <Esqueleto n={6} alto={30} />}
@@ -225,7 +225,7 @@ export default function App() {
               <button key={p.id} onClick={() => setSel(p.id)} className="fila-zona"
                 style={{
                   display: 'block', width: '100%', textAlign: 'left',
-                  paddingBlock: 'var(--esp-4)', marginBottom: 'var(--esp-3)',
+                  paddingBlock: 'var(--esp-5)', marginBottom: 'var(--esp-4)',
                   background: activo ? 'var(--abismo)' : 'transparent',
                   borderColor: activo ? COLOR_BANDA[p.banda] : 'var(--sonda)',
                 }}>
@@ -264,7 +264,7 @@ export default function App() {
       {/* ─── HUD DERECHA · detalle de zona ─── */}
       <aside className="hud hud-der">
         {cargandoDetalle && !detalle && (
-          <div className="panel" style={{ padding: 'var(--esp-5)' }}>
+          <div className="panel" style={{ padding: 'var(--esp-6)' }}>
             <div className="rotulo" style={{ color: 'var(--acento)', marginBottom: 'var(--esp-4)' }}>{t.cargando}</div>
             <div className="esqueleto" style={{ height: 200, marginBottom: 'var(--esp-4)' }} />
             <Esqueleto n={4} />
@@ -272,7 +272,7 @@ export default function App() {
         )}
 
         {!cargandoDetalle && !detalle && (
-          <div className="panel" style={{ padding: 'var(--esp-5)' }}>
+          <div className="panel" style={{ padding: 'var(--esp-6)' }}>
             <div className="rotulo" style={{ color: 'var(--alerta)' }}>{t.sinDetalle}</div>
             <div className="rotulo" style={{ marginTop: 'var(--esp-3)', textTransform: 'none', letterSpacing: '0.03em', lineHeight: 1.5 }}>
               {t.sinDetalleAyuda}
@@ -282,7 +282,7 @@ export default function App() {
 
         {detalle && (
           <>
-            <div className={`panel ${detalle.simulado ? 'simulado' : ''}`} style={{ padding: 'var(--esp-5)' }}>
+            <div className={`panel ${detalle.simulado ? 'simulado' : ''}`} style={{ padding: 'var(--esp-6)' }}>
               <LecturaZona detalle={detalle} idioma={idioma} />
 
               <div style={{ marginTop: 'var(--esp-5)', borderTop: 'var(--linea)', paddingTop: 'var(--esp-4)' }}>

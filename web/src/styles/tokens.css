@@ -120,6 +120,9 @@
   --esp-4: 8px;
   --esp-5: 12px;
   --esp-6: 16px;
+  /* Aire contra el borde de la ventana. Distinto de --esp-*:
+     eso es ritmo interno; esto es el margen de la placa. */
+  --gutter: 20px;
 
   /* Radios tomados del sistema de la Plataforma Psicológica. */
   --r-sm: 6px;
@@ -281,7 +284,7 @@ button:focus-visible, select:focus-visible {
 
 /* Las filas del ranking son superficies, no píldoras: con radio de píldora
    una lista densa se vuelve ilegible. Radio suave y ya. */
-.fila-zona { border-radius: var(--r); padding-inline: var(--esp-4); }
+.fila-zona { border-radius: var(--r); padding-inline: var(--esp-5); }
 
 input[type="range"] { accent-color: var(--acento); background: transparent; border: none; }
 
@@ -302,16 +305,16 @@ input[type="range"] { accent-color: var(--acento); background: transparent; bord
 .capa-mapa { position: absolute; inset: 0; overflow: hidden; }
 
 .hud {
-  position: absolute; top: 66px; bottom: 12px; z-index: 10;
-  display: flex; flex-direction: column; gap: var(--esp-5);
+  position: absolute; top: 72px; bottom: var(--gutter); z-index: 10;
+  display: flex; flex-direction: column; gap: var(--esp-6);
   overflow-y: auto; overscroll-behavior: contain;
 }
-.hud-izq { left: 12px; width: 272px; }
-.hud-der { right: 12px; width: 316px; }
+.hud-izq { left: var(--gutter); width: 320px; bottom: 52px; }
+.hud-der { right: var(--gutter); width: 380px; }
 
 /* La banda de escenario empuja el HUD hacia abajo. :has evita un
    segundo layout mode y no toca el mapa. */
-.layout:has(.aviso-escenario) .hud { top: 102px; }
+.layout:has(.aviso-escenario) .hud { top: 110px; }
 
 .aviso-escenario {
   position: absolute; top: 58px; left: 0; right: 0; z-index: 12;
@@ -342,20 +345,20 @@ input[type="range"] { accent-color: var(--acento); background: transparent; bord
   font-size: var(--texto-lg);
   font-weight: 700;
   letter-spacing: -0.01em;
-  line-height: 1.3;
-  margin: var(--esp-2) 0 0;
+  line-height: 1.35;
+  margin: var(--esp-3) 0 0;
 }
 .frase-detalle {
   font-size: var(--texto-sm);
-  line-height: 1.5;
-  margin: var(--esp-2) 0 0;
+  line-height: 1.55;
+  margin: var(--esp-3) 0 0;
   color: var(--papel);
 }
 .accion-recomendada {
   font-size: var(--texto-sm);
-  line-height: 1.45;
-  margin-top: var(--esp-4);
-  padding: var(--esp-4);
+  line-height: 1.5;
+  margin-top: var(--esp-5);
+  padding: var(--esp-5);
   background-color: var(--abismo);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--papel) 9%, transparent);
   border-radius: var(--r);
@@ -478,7 +481,7 @@ button.termino:active { transform: none; }
 .barra-sup {
   position: absolute; top: 0; left: 0; right: 0; z-index: 12;
   display: flex; align-items: center; gap: var(--esp-5); flex-wrap: wrap;
-  padding: var(--esp-4) var(--esp-5);
+  padding: var(--esp-5) var(--gutter);
   background-color: var(--abismo);
   border-bottom: var(--linea);
 }
@@ -506,8 +509,8 @@ button, select, input, .fila-zona {
 
 /* ─── CARTUCHO (bloque de título de carta náutica) ─── */
 .cartucho {
-  position: absolute; left: 12px; bottom: 12px; z-index: 11;
-  width: 224px; padding: 13px 14px;
+  position: absolute; left: var(--gutter); bottom: var(--gutter); z-index: 11;
+  width: 320px; padding: var(--esp-6);
   border-radius: var(--r-lg);
   background-color: color-mix(in srgb, var(--profundo) 94%, transparent);
   border: none;
@@ -524,13 +527,13 @@ button, select, input, .fila-zona {
 }
 .cartucho-x:hover { color: var(--critico); }
 .cartucho-cerrado {
-  position: absolute; left: 12px; bottom: 12px; z-index: 11;
-  padding: 6px 12px; background-color: var(--profundo); border: var(--linea);
+  position: absolute; left: var(--gutter); bottom: var(--gutter); z-index: 11;
+  padding: var(--esp-3) var(--esp-5); background-color: var(--profundo); border: var(--linea);
   border-radius: var(--r-pill);
 }
 
 @media (max-width: 900px) {
-  .cartucho, .cartucho-cerrado { position: static; width: auto; margin: 9px 9px 0; }
+  .cartucho, .cartucho-cerrado { position: static; width: auto; margin: var(--esp-5) var(--gutter) 0; }
 }
 
 @media (max-width: 900px) {
@@ -541,10 +544,10 @@ button, select, input, .fila-zona {
   .capa-mapa { position: relative; inset: auto; height: 46vh; min-height: 260px; }
   .hud {
     position: static; width: auto; max-height: none;
-    overflow: visible; margin: 9px 9px 0;
+    overflow: visible; margin: var(--esp-5) var(--gutter) 0;
   }
-  .hud-izq, .hud-der { left: auto; right: auto; width: auto; }
-  .hud:last-child { margin-bottom: 16px; }
+  .hud-izq, .hud-der { left: auto; right: auto; width: auto; bottom: auto; }
+  .hud:last-child { margin-bottom: var(--esp-6); }
 
   /* En escritorio la barra flota sobre el mapa. En móvil el mapa solo mide
      ~374 px de alto y la barra le comía la mitad, así que entra en el flujo. */

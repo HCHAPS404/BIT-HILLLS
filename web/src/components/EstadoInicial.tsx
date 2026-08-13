@@ -14,7 +14,7 @@ interface Props {
 export function EstadoInicial({ idioma, simulado, onProbar }: Props) {
   const t = T[idioma];
   return (
-    <div className="panel" style={{ padding: 'var(--esp-5)' }}>
+    <div className="panel" style={{ padding: 'var(--esp-6)' }}>
       <div className="rotulo" style={{ color: 'var(--seco)', marginBottom: 'var(--esp-3)' }}>{t.hoyVerde}</div>
       <p style={{ fontSize: 'var(--texto-sm)', lineHeight: 1.5, margin: 0, color: 'var(--papel)' }}>
         {simulado ? t.verdeEscenario : t.verdeVivo}

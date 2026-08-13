@@ -20,17 +20,18 @@ interface Props {
   version: string;
   zonas: number;
   establecimientos: number;
+  etiquetaCerrado?: string;
 }
 
 const Fila = ({ k, v, acento }: { k: string; v: string; acento?: string }) => (
-  <div style={{ display: 'flex', gap: 8, lineHeight: 1.55 }}>
-    <span className="rotulo" style={{ fontSize: 8, width: 66, flexShrink: 0 }}>{k}</span>
-    <span className="num" style={{ fontSize: 9, color: acento ?? 'var(--papel-tenue)' }}>{v}</span>
+  <div style={{ display: 'flex', gap: 'var(--esp-4)', lineHeight: 1.5 }}>
+    <span className="rotulo" style={{ fontSize: 'var(--texto-xs)', width: 72, flexShrink: 0 }}>{k}</span>
+    <span className="num" style={{ fontSize: 'var(--texto-xs)', color: acento ?? 'var(--papel-tenue)', overflowWrap: 'anywhere' }}>{v}</span>
   </div>
 );
 
-export function Cartucho({ fuente, escenarioNombre, generado, version, zonas, establecimientos }: Props) {
-  const [abierto, setAbierto] = useState(true);
+export function Cartucho({ fuente, escenarioNombre, generado, version, zonas, establecimientos, etiquetaCerrado = 'proyección · datum · sondas' }: Props) {
+  const [abierto, setAbierto] = useState(false);
 
   const t = new Date(generado);
   const bogota = new Date(t.getTime() - 5 * 3600_000);
@@ -39,7 +40,7 @@ export function Cartucho({ fuente, escenarioNombre, generado, version, zonas, es
   if (!abierto) {
     return (
       <button className="cartucho-cerrado" onClick={() => setAbierto(true)}>
-        <span className="rotulo" style={{ fontSize: 8.5 }}>▣ carta</span>
+        <span className="rotulo" style={{ fontSize: 'var(--texto-xs)' }}>{etiquetaCerrado}</span>
       </button>
     );
   }
@@ -48,19 +49,19 @@ export function Cartucho({ fuente, escenarioNombre, generado, version, zonas, es
     <div className="cartucho marco">
       <button onClick={() => setAbierto(false)} className="cartucho-x" aria-label="Ocultar cartucho">×</button>
 
-      <div className="rotulo" style={{ fontSize: 7.5, letterSpacing: '0.2em' }}>república de colombia</div>
-      <div className="rotulo" style={{ fontSize: 7.5, letterSpacing: '0.2em', marginBottom: 7 }}>
+      <div className="rotulo" style={{ fontSize: 'var(--texto-xs)', letterSpacing: '0.08em' }}>república de colombia</div>
+      <div className="rotulo" style={{ fontSize: 'var(--texto-xs)', letterSpacing: '0.08em', marginBottom: 'var(--esp-4)' }}>
         cartagena de indias · bolívar
       </div>
 
-      <div style={{ borderTop: 'var(--linea)', paddingTop: 7 }}>
-        <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.2 }}>
+      <div style={{ borderTop: 'var(--linea)', paddingTop: 'var(--esp-4)' }}>
+        <div style={{ fontSize: 'var(--texto-md)', fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.25 }}>
           CARTA DE RIESGO<br />DE INUNDACIÓN
         </div>
-        <div className="rotulo" style={{ fontSize: 8, marginTop: 3 }}>corredor turístico · escala 1:60 000</div>
+        <div className="rotulo" style={{ fontSize: 'var(--texto-xs)', marginTop: 'var(--esp-2)' }}>corredor turístico · escala 1:60 000</div>
       </div>
 
-      <div style={{ borderTop: 'var(--linea)', marginTop: 8, paddingTop: 7 }}>
+      <div style={{ borderTop: 'var(--linea)', marginTop: 'var(--esp-4)', paddingTop: 'var(--esp-4)' }}>
         <Fila k="proyección" v="Web Mercator" />
         <Fila k="datum" v="WGS-84" />
         <Fila k="sondas" v="metros sobre NMM" />
@@ -70,15 +71,15 @@ export function Cartucho({ fuente, escenarioNombre, generado, version, zonas, es
         <Fila k="corregida" v={sello} />
       </div>
 
-      <div style={{ borderTop: 'var(--linea)', marginTop: 8, paddingTop: 7 }}>
+      <div style={{ borderTop: 'var(--linea)', marginTop: 'var(--esp-4)', paddingTop: 'var(--esp-4)' }}>
         <Fila k="zonas" v={String(zonas)} />
         <Fila k="estab." v={`${establecimientos.toLocaleString('es-CO')} (OSM · piso)`} />
         <Fila k="fuentes" v="Open-Meteo · OSM" />
       </div>
 
       <div className="rotulo" style={{
-        fontSize: 7.5, textTransform: 'none', letterSpacing: '0.03em',
-        lineHeight: 1.5, marginTop: 8, borderTop: 'var(--linea)', paddingTop: 7,
+        fontSize: 'var(--texto-xs)', textTransform: 'none', letterSpacing: '0.03em',
+        lineHeight: 1.5, marginTop: 'var(--esp-4)', borderTop: 'var(--linea)', paddingTop: 'var(--esp-4)',
         color: 'var(--alerta)',
       }}>
         AVISO — Índice sin calibrar contra eventos históricos. Ordena riesgo

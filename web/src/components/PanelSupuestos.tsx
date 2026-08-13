@@ -32,9 +32,10 @@ interface Props {
   onCambio: (overrides: any) => void;
   verTotal: number;
   recalculando: boolean;
+  sinCaja?: boolean;
 }
 
-export function PanelSupuestos({ onCambio, verTotal, recalculando }: Props) {
+export function PanelSupuestos({ onCambio, verTotal, recalculando, sinCaja }: Props) {
   const [meta, setMeta] = useState<Meta[]>([]);
   const [valores, setValores] = useState<any>(null);
   const [overrides, setOverrides] = useState<any>({});
@@ -44,7 +45,7 @@ export function PanelSupuestos({ onCambio, verTotal, recalculando }: Props) {
     getParams().then((p) => { setMeta(p.meta as Meta[]); setValores(p.valores); }).catch(() => {});
   }, []);
 
-  if (!valores) return <div className="rotulo" style={{ padding: 12 }}>cargando supuestos…</div>;
+  if (!valores) return <div className="rotulo" style={{ padding: 'var(--esp-5)' }}>cargando supuestos…</div>;
 
   const set = (key: string, v: number) => {
     const nuevos = escribir(overrides, key, v);
@@ -56,22 +57,22 @@ export function PanelSupuestos({ onCambio, verTotal, recalculando }: Props) {
 
   const efectivo = (key: string) => leer(overrides, key) ?? leer(valores, key);
 
-  return (
-    <div className="panel milimetrado" style={{ padding: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-        <div className="rotulo" style={{ color: 'var(--acento)' }}>supuestos del modelo</div>
-        <button onClick={reset} style={{ fontSize: 9, padding: '2px 6px', letterSpacing: '0.1em' }}>RESET</button>
+  const cuerpo = (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 'var(--esp-2)' }}>
+        {!sinCaja && <div className="rotulo" style={{ color: 'var(--acento)' }}>supuestos del modelo</div>}
+        <button onClick={reset} style={{ fontSize: 'var(--texto-xs)', padding: 'var(--esp-1) var(--esp-3)', letterSpacing: '0.08em', marginLeft: 'auto' }}>RESET</button>
       </div>
 
-      <div style={{ fontSize: 11, color: 'var(--papel-tenue)', lineHeight: 1.5, marginBottom: 10 }}>
+      <div style={{ fontSize: 'var(--texto-sm)', color: 'var(--papel-tenue)', lineHeight: 1.5, marginBottom: 'var(--esp-4)' }}>
         Cambia cualquier supuesto. El modelo es tuyo.
       </div>
 
-      <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+      <div style={{ display: 'flex', gap: 'var(--esp-3)', marginBottom: 'var(--esp-5)' }}>
         {(['economia', 'riesgo'] as const).map((g) => (
           <button key={g} onClick={() => setGrupo(g)}
             style={{
-              fontSize: 9, padding: '4px 9px', letterSpacing: '0.12em', textTransform: 'uppercase',
+              fontSize: 'var(--texto-xs)', padding: 'var(--esp-2) var(--esp-4)', letterSpacing: '0.08em', textTransform: 'uppercase',
               borderColor: grupo === g ? 'var(--acento)' : 'var(--sonda)',
               color: grupo === g ? 'var(--acento)' : 'var(--papel-fant)',
             }}>
@@ -80,23 +81,23 @@ export function PanelSupuestos({ onCambio, verTotal, recalculando }: Props) {
         ))}
       </div>
 
-      <div style={{ maxHeight: 280, overflowY: 'auto', paddingRight: 4 }}>
+      <div style={{ maxHeight: 280, overflowY: 'auto', paddingRight: 'var(--esp-2)' }}>
         {meta.filter((m) => m.grupo === grupo).map((m) => {
           const v = Number(efectivo(m.key));
           const tocado = leer(overrides, m.key) !== undefined;
           return (
-            <div key={m.key} style={{ marginBottom: 13 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                <span style={{ fontSize: 11, color: tocado ? 'var(--acento)' : 'var(--papel)' }}>{m.label}</span>
-                <span className="num" style={{ fontSize: 11, color: tocado ? 'var(--acento)' : 'var(--papel-tenue)', whiteSpace: 'nowrap' }}>
+            <div key={m.key} style={{ marginBottom: 'var(--esp-5)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 'var(--esp-4)' }}>
+                <span style={{ fontSize: 'var(--texto-sm)', color: tocado ? 'var(--acento)' : 'var(--papel)' }}>{m.label}</span>
+                <span className="num" style={{ fontSize: 'var(--texto-sm)', color: tocado ? 'var(--acento)' : 'var(--papel-tenue)', whiteSpace: 'nowrap' }}>
                   {m.unidad === 'COP' ? copCorto(v) : v.toLocaleString('es-CO', { maximumFractionDigits: 2 })}
                   {m.unidad && m.unidad !== 'COP' ? ` ${m.unidad}` : ''}
                 </span>
               </div>
               <input type="range" min={m.min} max={m.max} step={m.step} value={v}
                 onChange={(e) => set(m.key, Number(e.target.value))}
-                style={{ width: '100%', marginTop: 3 }} />
-              <div className="rotulo" style={{ fontSize: 8.5, letterSpacing: '0.05em', textTransform: 'none', lineHeight: 1.35 }}>
+                style={{ width: '100%', marginTop: 'var(--esp-2)' }} />
+              <div className="rotulo" style={{ fontSize: 'var(--texto-xs)', letterSpacing: '0.03em', textTransform: 'none', lineHeight: 1.5 }}>
                 {m.fuente}
               </div>
             </div>
@@ -104,12 +105,19 @@ export function PanelSupuestos({ onCambio, verTotal, recalculando }: Props) {
         })}
       </div>
 
-      <div style={{ borderTop: 'var(--linea)', marginTop: 8, paddingTop: 9 }}>
+      <div style={{ borderTop: 'var(--linea)', marginTop: 'var(--esp-4)', paddingTop: 'var(--esp-4)' }}>
         <div className="rotulo">ver total del corredor</div>
-        <div className="num" style={{ fontSize: 19, fontWeight: 700, color: recalculando ? 'var(--papel-fant)' : 'var(--critico)' }}>
+        <div className="num" style={{ fontSize: 'var(--texto-xl)', fontWeight: 700, color: recalculando ? 'var(--papel-fant)' : 'var(--critico)' }}>
           {copCorto(verTotal)} COP
         </div>
       </div>
+    </>
+  );
+
+  if (sinCaja) return cuerpo;
+  return (
+    <div className="panel milimetrado" style={{ padding: 'var(--esp-5)' }}>
+      {cuerpo}
     </div>
   );
 }

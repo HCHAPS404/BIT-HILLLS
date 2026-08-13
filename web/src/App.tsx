@@ -108,11 +108,16 @@ export default function App() {
   useEffect(() => {
     if (!sel) return;
     setCargandoDetalle(true);
-    getRiesgo(sel, escenario || undefined, temporada)
+    getRiesgo(
+      sel,
+      escenario || undefined,
+      temporada,
+      Object.keys(overrides).length ? overrides : undefined,
+    )
       .then(setDetalle)
       .catch(() => setDetalle(null))
       .finally(() => setCargandoDetalle(false));
-  }, [sel, escenario, temporada]);
+  }, [sel, escenario, temporada, overrides]);
 
   const meta = geo?.metadata;
   const verTotal = geo?.features.reduce((a, f) => a + f.properties.ver_cop, 0) ?? 0;

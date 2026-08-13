@@ -10,7 +10,7 @@
  * Nunca discutas un número con un jurado — dale el control deslizante.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getParams, copCorto } from '../lib/api';
 import type { Idioma } from '../i18n';
 import { T } from '../i18n';
@@ -46,20 +46,35 @@ export function PanelSupuestos({ onCambio, verTotal, recalculando, sinCaja, idio
   const [valores, setValores] = useState<any>(null);
   const [overrides, setOverrides] = useState<any>({});
   const [grupo, setGrupo] = useState<'economia' | 'riesgo'>('economia');
+  const [error, setError] = useState(false);
+  const tarda = useRef<number | undefined>(undefined);
 
   useEffect(() => {
-    getParams().then((p) => { setMeta(p.meta as Meta[]); setValores(p.valores); }).catch(() => {});
+    getParams()
+      .then((p) => { setMeta(p.meta as Meta[]); setValores(p.valores); })
+      .catch(() => setError(true));
+    return () => { if (tarda.current) window.clearTimeout(tarda.current); };
   }, []);
 
+  if (error) return <p className="prosa-nota" style={{ margin: 0 }}>{t.supuestosError}</p>;
   if (!valores) return <div className="rotulo" style={{ padding: 'var(--esp-5)' }}>{t.supuestosCargando}</div>;
+
+  const publicar = (nuevos: any) => {
+    if (tarda.current) window.clearTimeout(tarda.current);
+    tarda.current = window.setTimeout(() => onCambio(nuevos), 180);
+  };
 
   const set = (key: string, v: number) => {
     const nuevos = escribir(overrides, key, v);
     setOverrides(nuevos);
-    onCambio(nuevos);
+    publicar(nuevos);
   };
 
-  const reset = () => { setOverrides({}); onCambio({}); };
+  const reset = () => {
+    if (tarda.current) window.clearTimeout(tarda.current);
+    setOverrides({});
+    onCambio({});
+  };
 
   const efectivo = (key: string) => leer(overrides, key) ?? leer(valores, key);
 
@@ -115,6 +130,9 @@ export function PanelSupuestos({ onCambio, verTotal, recalculando, sinCaja, idio
         <div className="num" style={{ fontSize: 'var(--texto-xl)', fontWeight: 700, color: recalculando ? 'var(--papel-fant)' : 'var(--critico)' }}>
           {copCorto(verTotal)} COP
         </div>
+        {verTotal === 0 && (
+          <p className="prosa-nota" style={{ margin: 'var(--esp-3) 0 0' }}>{t.supuestosCero}</p>
+        )}
       </div>
     </>
   );
